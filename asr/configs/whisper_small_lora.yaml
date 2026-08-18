@@ -1,0 +1,96 @@
+# Kokborok (trp) ASR - Whisper-small + LoRA.
+#
+# Every script reads this file; nothing is hardcoded in a script body.
+# Override any key from the CLI, e.g.:
+#   python scripts/train.py --set train.batch_size=2 --set model.name=openai/whisper-tiny
+
+run_name: whisper_small_lora_trp
+
+paths:
+  # data/raw is READ-ONLY. Nothing in this repo ever writes to it.
+  raw_dir: data/raw
+  processed_dir: data/processed
+  results_dir: results
+  metrics_file: results/metrics.jsonl
+
+data:
+  # auto -> use manifest.csv if present, else audio/transcript pairs.
+  layout: auto
+  # How to attribute a clip to a speaker. This drives the split, so a wrong
+  # value here silently leaks speakers between train and test.
+  #   parent_dir      -> data/raw/spk01/utt003.wav        => "spk01"
+  #   filename_prefix -> data/raw/spk01_utt003.wav        => "spk01"
+  #   single          -> everything is one speaker (blocks a real split)
+  speaker_strategy: parent_dir
+  speaker_delimiter: "_"
+  probe_durations: true
+  # Whisper's encoder is fixed at 30s; longer clips must be segmented first.
+  max_duration: 30.0
+  min_duration: 0.2
+
+split:
+  # Speaker-disjoint. Requires at least as many speakers as non-empty splits.
+  ratios:
+    train: 0.7
+    val: 0.15
+    test: 0.15
+  seed: 1234
+  # Leave false. True falls back to an utterance-level split, which leaks
+  # speakers across splits and reports optimistically low WER.
+  allow_speaker_overlap: false
+
+text:
+  lowercase: true
+  strip_punctuation: true
+  unicode_form: NFC
+
+model:
+  name: openai/whisper-small
+  # Whisper has no "trp" token. Transcripts are Romanized Latin script, so
+  # English is the closest available proxy. Recorded in metrics.jsonl.
+  language: en
+  task: transcribe
+  device: auto      # auto | cuda | cpu
+  precision: auto   # auto | fp16 | bf16 | fp32
+
+lora:
+  r: 32
+  alpha: 64
+  dropout: 0.05
+  bias: none
+  target_modules: [q_proj, v_proj]
+
+train:
+  output_dir: checkpoints/whisper_small_lora_trp
+  # Tuned for a 6 GB card: small batch, accumulate to an effective 16.
+  batch_size: 4
+  gradient_accumulation_steps: 4
+  eval_batch_size: 4
+  learning_rate: 1.0e-3
+  num_train_epochs: 8
+  max_steps: -1          # >0 overrides num_train_epochs
+  warmup_steps: 50
+  logging_steps: 10
+  eval_strategy: steps   # no | steps | epoch
+  eval_steps: 100
+  save_strategy: steps
+  save_steps: 100
+  save_total_limit: 3
+  gradient_checkpointing: true
+  precision: auto        # auto | fp16 | bf16 | fp32
+  seed: 1234
+  dataloader_num_workers: 2
+  # auto resumes from the newest checkpoint in output_dir if one exists.
+  resume: auto           # auto | none | <path to checkpoint>
+  # Run a full generate-based WER/CER pass when training finishes.
+  final_eval: true
+  final_eval_split: val
+
+eval:
+  split: test
+  batch_size: 8
+  max_new_tokens: 128
+  num_beams: 1
+  # Set an integer to score only the first N utterances - the fast check to
+  # prefer while iterating.
+  limit: null

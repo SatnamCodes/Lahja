@@ -1,0 +1,14 @@
+# ASR component only. Kept separate from Lahja's root requirements.txt on
+# purpose: the TTS service pins transformers==4.57.6 for coqui-tts, which
+# conflicts with the current transformers needed here. Install into the
+# component's own virtualenv (asr/.venv), not the TTS one.
+torch
+torchaudio
+transformers>=5.0
+datasets
+accelerate
+peft
+jiwer          # WER/CER, computed locally (no hub download at eval time)
+soundfile
+librosa        # resampling only
+pyyaml
