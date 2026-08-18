@@ -1,12 +1,51 @@
 # Lahja
 
-A digital language layer for Kokborok (ISO 639-3: `trp`).
+A digital language layer for Kokborok (ISO 639-3: `trp`), spoken by over a
+million people in Tripura and neighboring Bangladesh. Kokborok has no
+native entry in any major speech or language model: no TTS voice, no ASR,
+no NLLB-200 language code, no LLM that speaks it. Lahja is four features
+built to close that gap as honestly as possible - every response names the
+real model tier that produced it and a heuristic confidence, rather than
+presenting a best-effort bridge as if it were native support.
 
-## Frontend
+## Architecture
 
-`./scripts/run.sh` serves a single-page UI at `/` (built from `frontend/`,
-plain HTML/CSS/JS - no build step) with one tab per feature below, each
-calling its API and rendering the `confidence`/`method` it got back.
+```
+service/        FastAPI backend - the only place any model actually runs
+  tts_engine.py     Feature 1: text -> speech (XTTS zero-shot voice clone)
+  mt_engine.py       Feature 2: Kokborok <-> English (fine-tuned NLLB-200)
+  chat_engine.py      Feature 3: Kokborok Q&A (MT-bridged LLM)
+  asr_engine.py        Feature 4: speech -> text (phoneme/Whisper bridge)
+Lahja/           Primary web UI - Next.js, proxies /api to the backend
+frontend/        Fallback UI - plain HTML/CSS/JS, no build step, served
+                  directly by FastAPI at http://localhost:8000/
+asr/             Whisper-small + LoRA fine-tuning pipeline for Feature 4
+                  (own venv, own README - see asr/README.md)
+data/, models/   Reference audio, translated manifests, model checkpoints
+```
+
+## Quickstart (demo)
+
+```bash
+pip3 install --break-system-packages -r requirements.txt
+export GROQ_API_KEY=your-key-here          # free: console.groq.com/keys
+export HF_TOKEN=hf_your_token_here         # after accepting the gated repo, see Feature 2
+./scripts/run_demo.sh                       # backend :8000 + web UI :3000
+```
+
+Opens `http://localhost:3000`. A 90-second walkthrough: type the sample
+Kokborok phrase and hit **Speak it** (XTTS clones a real Kokborok voice from
+a reference clip in `data/audio/`) → flip to **Translate** and see the
+fine-tuned NLLB-200 model turn it into English and back → **Ask Lahja**
+a question in Kokborok and watch it bridge through an LLM and back → record
+a clip in **Speech → Text** and see the honest IPA-phoneme fallback, since
+no Kokborok ASR model exists yet. The "Under the hood" section at the
+bottom of the page lays out the full tiered-fallback design.
+
+`Lahja/` needs Node >=20.9 (`nvm install 20` if your system Node is older -
+Next 16 will not start on Node 18). No frontend build step is required to
+use the backend directly: `./scripts/run.sh` alone serves the no-build
+fallback UI from `frontend/` at `http://localhost:8000/`.
 
 ## Feature 1: Text(Kokborok) -> Speech(Kokborok)
 
@@ -153,9 +192,16 @@ POST /api/chat
 ## Feature 4: Kokborok speech -> text (ASR)
 
 No native or bridge-language Kokborok ASR model exists (Meta MMS's
-1,107-language ASR set doesn't include `trp`), and we don't currently have
-any labeled Kokborok audio to fine-tune with. `/api/transcribe` tries three
-tiers, in order, and is honest in the response about which one answered:
+1,107-language ASR set doesn't include `trp`). `data/asr_manifest.jsonl`
+now has 273 labeled clips (segmented from narrated Kokborok audio in
+`data/asr_dataset/`, transcribed in Bengali script), and a LoRA fine-tuning
+pipeline for them lives in [`asr/`](asr/) - speaker-disjoint train/test
+splits, a required baseline-vs-fine-tuned comparison, and WER/CER logged to
+`asr/results/metrics.jsonl` per run. No checkpoint has been trained and
+deployed from it yet (`models/whisper_finetuned/trp/` is still empty), so
+`/api/transcribe` currently falls through to the zero-shot tiers below. It
+tries three tiers, in order, and is honest in the response about which one
+answered:
 
 1. **`whisper_fine_tuned`** (confidence `0.6`) - a real checkpoint fine-tuned
    on labeled Kokborok audio. Not available yet; see below.
@@ -183,24 +229,22 @@ tiers, in order, and is honest in the response about which one answered:
    actively misleading for Kokborok audio - used only when the phoneme
    tier is unavailable.
 
-**To fine-tune once labeled Kokborok audio is available:** drop a manifest
-at `data/asr_manifest.jsonl`, one JSON object per line:
+**To produce a real checkpoint**, either:
 
-```json
-{"audio": "data/audio/clip001.wav", "text": "Nwng bubagra tamwi?"}
-```
+- the quick path - `python3 scripts/finetune_whisper.py`, a plain full
+  fine-tune reading `data/asr_manifest.jsonl` directly; or
+- the rigorous path - the LoRA pipeline in [`asr/`](asr/) (its own venv,
+  speaker-disjoint splits, baseline comparison, logged WER/CER). Its
+  adapter checkpoints land in `asr/checkpoints/`, not
+  `models/whisper_finetuned/trp/`, so merging an adapter back into a
+  standalone checkpoint there is the one remaining step before
+  `ASREngine` picks it up automatically and prefers it over both
+  zero-shot tiers.
 
-`scripts/prepare_audio.py` will segment any long recordings in
-`data/audio/*.mp3` into short clips and write a fill-in-the-blank
-`data/asr_manifest_template.jsonl` to start from. Then run:
-
-```bash
-python3 scripts/finetune_whisper.py
-```
-
-This saves a checkpoint to `models/whisper_finetuned/trp/`, which
-`ASREngine` picks up automatically on next load and prefers over both
-zero-shot tiers.
+`scripts/prepare_audio.py` segments long recordings in `data/audio/*.mp3`
+into short clips and writes a fill-in-the-blank
+`data/asr_manifest_template.jsonl` to start a new manifest from, if you're
+adding more labeled audio.
 
 ```
 POST /api/transcribe   (multipart, field name "audio")

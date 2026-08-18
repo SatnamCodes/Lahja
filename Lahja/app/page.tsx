@@ -1,31 +1,34 @@
 import { Hero } from "@/components/site/hero"
+import { TribalLanguageMapSection } from "@/components/site/tribal-language-map-section"
 import { FeatureSectionShell } from "@/components/site/feature-section-shell"
 import { FeatureTextToSpeech } from "@/components/site/feature-text-to-speech"
 import { FeatureSpeechToText } from "@/components/site/feature-speech-to-text"
-import { FeatureCombined } from "@/components/site/feature-combined"
-import { AiTier } from "@/components/site/ai-tier"
+import { FeatureTranslate } from "@/components/site/feature-translate"
+import { FeatureChat } from "@/components/site/feature-chat"
+import { HowItWorks } from "@/components/site/how-it-works"
 import { Footer } from "@/components/site/footer"
 
 export default function Page() {
   return (
     <main className="bg-background">
       <Hero />
+      <TribalLanguageMapSection />
 
       <div id="features">
         <FeatureSectionShell
           index="01"
-          eyebrow="Text → Speech → Text"
-          title="Give written words a voice"
-          description="Write in an endangered language and hear it spoken aloud — each word highlighted as it's read, closing the loop back into text."
+          eyebrow="Text → Speech"
+          title="Give Kokborok a voice"
+          description="No Kokborok TTS model exists, so this clones a real Kokborok speaker's voice from a short reference clip and drives it through the closest phonetic path available — see how, below."
         >
           <FeatureTextToSpeech />
         </FeatureSectionShell>
 
         <FeatureSectionShell
           index="02"
-          eyebrow="Speech → Text → Speech"
-          title="Turn spoken words into text"
-          description="Speak into the mic and watch a live transcript appear, then play it back to check how it sounds."
+          eyebrow="Speech → Text"
+          title="Turn Kokborok speech into text"
+          description="Record or upload a Kokborok clip. No Kokborok ASR model exists either, so this reports the closest honest tier it has — down to raw IPA phonemes if nothing better is available."
           reverse
         >
           <FeatureSpeechToText />
@@ -33,15 +36,25 @@ export default function Page() {
 
         <FeatureSectionShell
           index="03"
-          eyebrow="Text & Speech, combined"
-          title="One panel, both directions"
-          description="Type or talk in the same place — Feature 1 and Feature 2, unified into a single translator."
+          eyebrow="Kokborok ↔ English"
+          title="Translate both directions"
+          description="A version of NLLB-200 fine-tuned specifically on Kokborok — the only entry point most translation tools don't have for this language at all."
         >
-          <FeatureCombined />
+          <FeatureTranslate />
+        </FeatureSectionShell>
+
+        <FeatureSectionShell
+          index="04"
+          eyebrow="Kokborok question → Kokborok answer"
+          title="Ask Lahja anything"
+          description="Your question is translated to English, answered by an LLM, and translated back — with the English bridge answer one click away, so the trip is never hidden."
+          reverse
+        >
+          <FeatureChat />
         </FeatureSectionShell>
       </div>
 
-      <AiTier />
+      <HowItWorks />
       <Footer />
     </main>
   )

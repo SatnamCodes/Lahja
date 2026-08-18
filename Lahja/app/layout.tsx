@@ -15,9 +15,9 @@ const fontMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Lahja — a voice for endangered languages",
+  title: "Lahja — a digital language layer for Kokborok",
   description:
-    "Lahja converts endangered-language text to speech and speech to text, with an AI-assisted tier that closes the loop automatically.",
+    "Speech, text, translation, and Q&A for Kokborok (trp) — a language with no first-party AI support until now. Every result names the real model tier that produced it.",
 }
 
 export default function RootLayout({
