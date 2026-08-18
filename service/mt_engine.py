@@ -11,7 +11,7 @@ reported BLEU/COMET scores.
 import logging
 from typing import Optional
 
-from . import config
+from . import config, device_utils
 
 logger = logging.getLogger("lahja.mt")
 
@@ -21,6 +21,7 @@ class TranslationResult:
         self.text = text
         self.confidence = confidence
         self.method = method
+
 
 
 class MTEngine:
@@ -48,7 +49,13 @@ class MTEngine:
             from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
             logger.info("Loading Kokborok MT model %s on %s...", config.MT_MODEL_NAME, self.device)
             self._tokenizer = AutoTokenizer.from_pretrained(config.MT_MODEL_NAME)
-            self._model = AutoModelForSeq2SeqLM.from_pretrained(config.MT_MODEL_NAME).to(self.device)
+            # ~600M params, and whichever engine loads last on a 6 GB card
+            # hits OOM. Record where it actually landed so translate() moves
+            # its inputs to the same device.
+            self._model, self._device = device_utils.to_device_or_cpu(
+                AutoModelForSeq2SeqLM.from_pretrained(config.MT_MODEL_NAME),
+                self.device, what="the Kokborok MT model",
+            )
         except Exception:
             logger.exception("Kokborok MT model failed to load")
             self._load_failed = True

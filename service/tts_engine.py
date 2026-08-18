@@ -26,9 +26,35 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from . import config
+from . import config, device_utils, translit
 
 logger = logging.getLogger("lahja.tts")
+
+
+
+def _trim_silence(waveform, sr: int, threshold: float = 0.02, pad_ms: int = 40):
+    """Strip near-silent head and tail, keeping a small pad.
+
+    Frame-wise RMS rather than per-sample: a single loud sample in an
+    otherwise silent stretch should not count as speech.
+    """
+    import numpy as np
+
+    if waveform.size == 0:
+        return waveform
+    hop = max(1, int(0.01 * sr))
+    n = len(waveform) // hop * hop
+    if n < hop:
+        return waveform
+    frames = waveform[:n].reshape(-1, hop)
+    rms = np.sqrt((frames ** 2).mean(axis=1))
+    loud = np.flatnonzero(rms > threshold)
+    if loud.size == 0:
+        return waveform  # all quiet - return as-is rather than an empty clip
+    pad = int(pad_ms / 1000 * sr)
+    start = max(0, loud[0] * hop - pad)
+    end = min(len(waveform), (loud[-1] + 1) * hop + pad)
+    return waveform[start:end]
 
 
 class SynthesisResult:
@@ -45,6 +71,7 @@ class TTSEngine:
         self._xtts_load_failed = False
         self._mms_models: dict[str, tuple] = {}
         self._mms_load_failed: set[str] = set()
+        self._mms_device: Optional[str] = None
 
     @property
     def device(self) -> str:
@@ -95,7 +122,11 @@ class TTSEngine:
             checkpoint = self._finetuned_checkpoint(bridge)
             source = str(checkpoint) if checkpoint else config.MMS_MODEL_CANDIDATES[bridge]
             logger.info("Loading MMS-TTS bridge model from %s...", source)
-            model = VitsModel.from_pretrained(source).to(self.device)
+            model, mms_device = device_utils.to_device_or_cpu(
+                VitsModel.from_pretrained(source), self.device,
+                what=f"the MMS-TTS {bridge} bridge model",
+            )
+            self._mms_device = mms_device
             tokenizer = AutoTokenizer.from_pretrained(source)
             fine_tuned = checkpoint is not None
             self._mms_models[bridge] = (model, tokenizer, fine_tuned)
@@ -118,15 +149,27 @@ class TTSEngine:
         if tts is None:
             return None
         out_path = self._output_path(text, config.METHOD_XTTS_ZERO_SHOT)
-        tts.tts_to_file(
-            text=text,
-            speaker_wav=speaker_wavs,
-            language=config.XTTS_BRIDGE_LANGUAGE,
-            file_path=str(out_path),
-        )
+        try:
+            tts.tts_to_file(
+                text=text,
+                speaker_wav=speaker_wavs,
+                language=config.XTTS_BRIDGE_LANGUAGE,
+                file_path=str(out_path),
+            )
+        except Exception:
+            # Synthesis can fail even after the model loads fine - most often
+            # because coqui-tts reads the reference clip through torchcodec,
+            # which needs a complete FFmpeg shared-library set. Returning None
+            # rather than raising is what makes speak()'s documented "falls
+            # back to MMS if XTTS ... fails" actually hold: before this, a
+            # synthesis-time error escaped speak() and the MMS bridge was
+            # never tried at all.
+            logger.exception("XTTS v2 synthesis failed; falling back to the MMS bridge")
+            return None
         return SynthesisResult(out_path, confidence=0.45, method=config.METHOD_XTTS_ZERO_SHOT)
 
     def _synthesize_mms(self, text: str) -> Optional[SynthesisResult]:
+        import numpy as np
         import torch
         import scipy.io.wavfile as wavfile
 
@@ -135,7 +178,18 @@ class TTSEngine:
         if loaded is None:
             return None
         model, tokenizer, fine_tuned = loaded
-        inputs = tokenizer(text, return_tensors="pt")
+
+        # The bridge tokenizer is native-script (Bengali). Romanized Kokborok
+        # - what the UI and the MT model both use - would tokenize to nothing,
+        # so transliterate first. Bengali-script input is passed through
+        # untouched by latin_to_bengali(), so this is safe unconditionally.
+        synth_text = text
+        if translit.looks_romanized(text):
+            synth_text = translit.latin_to_bengali(text)
+            logger.info("Transliterated Romanized input for the Bengali bridge: %r -> %r",
+                        text, synth_text)
+
+        inputs = tokenizer(synth_text, return_tensors="pt")
         if inputs.input_ids.shape[-1] == 0:
             # The bridge model's tokenizer is native-script (e.g. Bengali
             # Unicode) and Kokborok text here is Romanized Latin script, so
@@ -147,16 +201,30 @@ class TTSEngine:
                 text,
             )
             return None
-        inputs = inputs.to(self.device)
+        inputs = inputs.to(self._mms_device or self.device)
         with torch.no_grad():
             output = model(**inputs).waveform
         method = config.METHOD_MMS_FINE_TUNED if fine_tuned else config.METHOD_MMS_BRIDGE
         confidence = 0.65 if fine_tuned else 0.35
         out_path = self._output_path(text, method)
+        waveform = output.squeeze().cpu().numpy()
+        # VITS emits float32. Writing that straight out produces a 32-bit
+        # float WAV, which browsers cannot decode - <audio> reports a valid
+        # duration but plays silence. Convert to 16-bit PCM, which every
+        # browser handles. Peak-normalize first (only when it would clip or
+        # when the signal is quiet) so the result is audible without
+        # distorting.
+        # Trim leading/trailing silence. VITS pads the utterance, and on a
+        # ~2s clip a 0.4s silent head reads as "nothing happened" - especially
+        # since the UI starts playback automatically.
+        waveform = _trim_silence(waveform, sr=model.config.sampling_rate)
+        peak = float(np.abs(waveform).max()) if waveform.size else 0.0
+        if peak > 0:
+            waveform = waveform / peak * 0.95
         wavfile.write(
             str(out_path),
             rate=model.config.sampling_rate,
-            data=output.squeeze().cpu().numpy(),
+            data=(waveform * 32767.0).astype(np.int16),
         )
         return SynthesisResult(out_path, confidence=confidence, method=method)
 

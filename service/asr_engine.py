@@ -27,7 +27,7 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from . import config
+from . import config, device_utils
 
 logger = logging.getLogger("lahja.asr")
 
@@ -49,6 +49,11 @@ class ASREngine:
         self._phoneme_model = None
         self._phoneme_processor = None
         self._phoneme_load_failed = False
+        # Each model records where it ACTUALLY landed: one may fall back to
+        # CPU on VRAM pressure while the other stays on GPU, and inputs must
+        # be moved to the same device as their model.
+        self._whisper_device: Optional[str] = None
+        self._phoneme_device: Optional[str] = None
 
     @property
     def device(self) -> str:
@@ -74,7 +79,10 @@ class ASREngine:
                 source, self._whisper_fine_tuned, self.device,
             )
             self._whisper_processor = WhisperProcessor.from_pretrained(source)
-            self._whisper_model = WhisperForConditionalGeneration.from_pretrained(source).to(self.device)
+            self._whisper_model, self._whisper_device = device_utils.to_device_or_cpu(
+                WhisperForConditionalGeneration.from_pretrained(source),
+                self.device, what="the Whisper ASR model",
+            )
         except Exception:
             logger.exception("Whisper ASR model failed to load")
             self._whisper_load_failed = True
@@ -94,7 +102,10 @@ class ASREngine:
             )
             logger.info("Loading phoneme ASR model from %s on %s...", source, self.device)
             self._phoneme_processor = Wav2Vec2Processor.from_pretrained(source)
-            self._phoneme_model = Wav2Vec2ForCTC.from_pretrained(source).to(self.device)
+            self._phoneme_model, self._phoneme_device = device_utils.to_device_or_cpu(
+                Wav2Vec2ForCTC.from_pretrained(source),
+                self.device, what="the phoneme ASR model",
+            )
         except Exception:
             logger.exception(
                 "Phoneme ASR model failed to load (needs `pip install phonemizer`, and "
@@ -112,7 +123,9 @@ class ASREngine:
         model, processor = self._load_whisper()
         if model is None:
             return None
-        inputs = processor(audio, sampling_rate=sr, return_tensors="pt").to(self.device)
+        inputs = processor(audio, sampling_rate=sr, return_tensors="pt").to(
+            self._whisper_device or self.device
+        )
         with torch.no_grad():
             predicted_ids = model.generate(**inputs)
         text = processor.batch_decode(predicted_ids, skip_special_tokens=True)[0].strip()
@@ -126,7 +139,9 @@ class ASREngine:
         model, processor = self._load_phoneme_model()
         if model is None:
             return None
-        inputs = processor(audio, sampling_rate=sr, return_tensors="pt").to(self.device)
+        inputs = processor(audio, sampling_rate=sr, return_tensors="pt").to(
+            self._phoneme_device or self.device
+        )
         with torch.no_grad():
             logits = model(inputs.input_values).logits
         predicted_ids = torch.argmax(logits, dim=-1)
