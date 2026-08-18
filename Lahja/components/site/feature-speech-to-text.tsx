@@ -1,130 +1,135 @@
 "use client"
 
 import * as React from "react"
-import { motion } from "motion/react"
-import { MicIcon, SquareIcon, Volume2Icon } from "lucide-react"
+import { Loader2Icon, MicIcon, SquareIcon, UploadIcon } from "lucide-react"
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { LanguageSelect } from "@/components/site/language-select"
 import { Waveform } from "@/components/site/waveform"
-import { useSpeechRecognition } from "@/hooks/use-speech-recognition"
-import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis"
-import { ENDANGERED_LANGUAGES, getLanguage } from "@/lib/languages"
+import { MethodBadge } from "@/components/site/method-badge"
+import { useAudioRecorder } from "@/hooks/use-audio-recorder"
+import { ApiError, transcribe, type TranscribeResponse } from "@/lib/api"
 
-export function FeatureSpeechToText({ aiAssisted = false }: { aiAssisted?: boolean }) {
-  const [langCode, setLangCode] = React.useState(ENDANGERED_LANGUAGES[0].code)
-  const language = getLanguage(langCode)
+export function FeatureSpeechToText() {
+  const { supported, recording, error: recError, start, stop } = useAudioRecorder()
+  const [status, setStatus] = React.useState<"idle" | "loading" | "error">("idle")
+  const [result, setResult] = React.useState<TranscribeResponse | null>(null)
+  const [error, setError] = React.useState<string | null>(null)
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null)
 
-  const { supported, listening, transcript, interimTranscript, confidence, error, start, stop, reset } =
-    useSpeechRecognition()
-  const { speak, speaking, hasVoiceFor } = useSpeechSynthesis()
-  const voiceAvailable = hasVoiceFor(langCode)
-  const wasListening = React.useRef(false)
-
-  React.useEffect(() => {
-    if (aiAssisted && wasListening.current && !listening && transcript.trim() && voiceAvailable) {
-      speak(transcript, langCode)
+  async function runTranscribe(blob: Blob, filename?: string) {
+    setStatus("loading")
+    setError(null)
+    setResult(null)
+    try {
+      const data = await transcribe(blob, filename)
+      setResult(data)
+      setStatus("idle")
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Transcription failed.")
+      setStatus("error")
     }
-    wasListening.current = listening
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listening])
+  }
 
-  function toggleListening() {
-    if (listening) {
-      stop()
+  async function toggleRecording() {
+    if (recording) {
+      const blob = await stop()
+      if (blob) await runTranscribe(blob, "recording.webm")
     } else {
-      reset()
-      start(langCode)
+      setResult(null)
+      setError(null)
+      await start()
     }
+  }
+
+  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ""
+    if (file) runTranscribe(file, file.name)
   }
 
   return (
     <Card className="w-full max-w-md ring-foreground/10">
       <CardHeader className="gap-3">
         <div className="flex items-center justify-between gap-3">
-          <LanguageSelect
-            value={langCode}
-            onChange={(code) => {
-              setLangCode(code)
-              reset()
-            }}
-            label="Spoken language"
-          />
-          <Badge variant={supported ? "secondary" : "outline"}>
-            {supported ? "Mic ready" : "No mic support"}
-          </Badge>
+          <p className="text-sm font-medium">Kokborok speech</p>
+          <span className="font-mono text-xs text-muted-foreground">trp</span>
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex items-center gap-3">
           <Button
-            onClick={toggleListening}
-            disabled={!supported}
+            onClick={toggleRecording}
+            disabled={!supported || status === "loading"}
             size="lg"
-            variant={listening ? "destructive" : "default"}
+            variant={recording ? "destructive" : "default"}
             className="gap-2"
           >
-            <motion.span
-              animate={listening ? { scale: [1, 1.15, 1] } : { scale: 1 }}
-              transition={{ duration: 1.1, repeat: listening ? Infinity : 0 }}
-              className="inline-flex"
-            >
-              {listening ? <SquareIcon className="size-3.5" /> : <MicIcon className="size-3.5" />}
-            </motion.span>
-            {listening ? "Stop" : "Speak now"}
+            {status === "loading" ? (
+              <Loader2Icon className="size-3.5 animate-spin" />
+            ) : recording ? (
+              <SquareIcon className="size-3.5" />
+            ) : (
+              <MicIcon className="size-3.5" />
+            )}
+            {status === "loading" ? "Transcribing…" : recording ? "Stop" : "Record"}
           </Button>
-          <Waveform active={listening} className="flex-1" />
+          <Waveform active={recording} className="flex-1" />
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="Upload audio file"
+            disabled={status === "loading"}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <UploadIcon className="size-3.5" />
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="audio/*"
+            className="hidden"
+            onChange={handleFile}
+          />
         </div>
 
         <div className="min-h-24 rounded-lg border border-border/70 bg-muted/40 p-4">
           <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
             Transcript
           </p>
-          <p className="text-base leading-relaxed">
-            {transcript || (
-              <span className="text-muted-foreground">
-                Speak some {language.name} and it will appear here…
+          <p className="font-mono text-base leading-relaxed break-words">
+            {result?.text || (
+              <span className="font-sans text-muted-foreground">
+                Record or upload a Kokborok clip and it will appear here…
               </span>
             )}
-            <span className="text-muted-foreground italic">
-              {interimTranscript ? ` ${interimTranscript}` : ""}
-            </span>
           </p>
         </div>
 
-        {confidence !== null && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Confidence</span>
-            <Progress value={Math.round(confidence * 100)} className="h-1.5 flex-1" />
-            <span className="font-mono text-xs text-muted-foreground">
-              {Math.round(confidence * 100)}%
-            </span>
-          </div>
+        {result && (
+          <>
+            <MethodBadge method={result.method} confidence={result.confidence} />
+            {result.method === "phoneme_zero_shot_bridge" && (
+              <p className="text-xs text-muted-foreground">
+                No Kokborok ASR model exists yet, so this is the raw IPA phoneme stream — sound,
+                not spelling. A fine-tuned model (see Lahja&apos;s ASR pipeline) will replace this.
+              </p>
+            )}
+            {result.method === "whisper_zero_shot_bridge" && (
+              <p className="text-xs text-destructive">
+                No phoneme model was available, so this is generic Whisper guessing a language it
+                doesn&apos;t recognize — treat the words as unreliable.
+              </p>
+            )}
+          </>
         )}
 
-        <Button
-          variant="outline"
-          className="gap-2"
-          disabled={!transcript.trim() || !voiceAvailable}
-          onClick={() => speak(transcript, langCode)}
-        >
-          <Volume2Icon className="size-3.5" />
-          {speaking ? "Speaking…" : "Speak it back"}
-        </Button>
-        {aiAssisted && (
-          <p className="text-xs text-muted-foreground">
-            Speaks your words back automatically as soon as you stop talking.
-          </p>
+        {(recError || (status === "error" && error)) && (
+          <p className="text-xs text-destructive">{recError ?? error}</p>
         )}
-
-        {error && <p className="text-xs text-destructive">{error}</p>}
         {!supported && (
           <p className="text-xs text-muted-foreground">
-            Live transcription needs Chrome, Edge, or another browser with speech recognition
-            support.
+            This browser can&apos;t record audio — use the upload button instead.
           </p>
         )}
       </CardContent>

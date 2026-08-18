@@ -26,7 +26,7 @@ export function Hero() {
         transition={{ duration: 0.6, delay: 0.1 }}
         className="mb-5 text-sm font-medium tracking-widest text-muted-foreground uppercase"
       >
-        Text · Speech · Endangered languages
+        A digital language layer for Kokborok (trp)
       </motion.p>
 
       <h1 className="flex text-7xl font-semibold tracking-tight sm:text-8xl md:text-9xl">
@@ -48,8 +48,9 @@ export function Hero() {
         transition={{ duration: 0.6, delay: 0.7 }}
         className="mt-6 max-w-lg text-lg text-muted-foreground"
       >
-        A voice for languages the world is starting to forget — spoken back
-        into text, and text spoken back into voice.
+        Spoken by over a million people in Tripura, with no major speech or
+        language model behind it — until now. Speech, text, translation, and
+        Q&amp;A, in Kokborok.
       </motion.p>
 
       <motion.div

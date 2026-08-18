@@ -1,114 +1,106 @@
 "use client"
 
 import * as React from "react"
-import { motion } from "motion/react"
-import { PlayIcon, SquareIcon } from "lucide-react"
+import { Loader2Icon, PlayIcon, SquareIcon } from "lucide-react"
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { LanguageSelect } from "@/components/site/language-select"
 import { Waveform } from "@/components/site/waveform"
-import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis"
-import { ENDANGERED_LANGUAGES, getLanguage } from "@/lib/languages"
+import { MethodBadge } from "@/components/site/method-badge"
+import { ApiError, speak, type SpeakResponse } from "@/lib/api"
+import { SAMPLE_TRP } from "@/lib/kokborok"
 
-export function FeatureTextToSpeech({ aiAssisted = false }: { aiAssisted?: boolean }) {
-  const [langCode, setLangCode] = React.useState(ENDANGERED_LANGUAGES[0].code)
-  const language = getLanguage(langCode)
-  const [text, setText] = React.useState(language.sample)
-  const autoTextRef = React.useRef(language.sample)
-  const [hasTyped, setHasTyped] = React.useState(false)
+export function FeatureTextToSpeech() {
+  const [text, setText] = React.useState(SAMPLE_TRP)
+  const [status, setStatus] = React.useState<"idle" | "loading" | "error">("idle")
+  const [result, setResult] = React.useState<SpeakResponse | null>(null)
+  const [error, setError] = React.useState<string | null>(null)
+  const [playing, setPlaying] = React.useState(false)
+  const audioRef = React.useRef<HTMLAudioElement | null>(null)
 
-  const { supported, speaking, speak, cancel, wordIndex, hasVoiceFor } = useSpeechSynthesis()
-  const voiceAvailable = supported && hasVoiceFor(langCode)
-
-  React.useEffect(() => {
-    if (!aiAssisted || !hasTyped || !voiceAvailable || !text.trim()) return
-    const timer = setTimeout(() => speak(text, langCode), 900)
-    return () => clearTimeout(timer)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [text, aiAssisted, hasTyped, voiceAvailable, langCode])
-
-  function handleLangChange(code: string) {
-    const next = getLanguage(code)
-    setLangCode(code)
-    if (text.trim() === "" || text === autoTextRef.current) {
-      setText(next.sample)
-      autoTextRef.current = next.sample
+  async function handleSpeak() {
+    if (!text.trim() || status === "loading") return
+    setStatus("loading")
+    setError(null)
+    try {
+      const data = await speak(text.trim())
+      setResult(data)
+      setStatus("idle")
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Synthesis failed.")
+      setStatus("error")
     }
   }
 
-  const words = text.trim().length ? text.trim().split(/\s+/) : []
+  React.useEffect(() => {
+    if (result && audioRef.current) {
+      audioRef.current.play().catch(() => {})
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.audio_url])
 
   return (
     <Card className="w-full max-w-md ring-foreground/10">
       <CardHeader className="gap-3">
         <div className="flex items-center justify-between gap-3">
-          <LanguageSelect value={langCode} onChange={handleLangChange} label="Source language" />
-          <Badge variant={voiceAvailable ? "secondary" : "outline"}>
-            {voiceAvailable ? "Voice ready" : "No local voice"}
-          </Badge>
+          <p className="text-sm font-medium">Kokborok text</p>
+          <span className="font-mono text-xs text-muted-foreground">trp</span>
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <Textarea
           value={text}
-          onChange={(e) => {
-            setText(e.target.value)
-            setHasTyped(true)
-          }}
-          placeholder={`Write something in ${language.name}…`}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Write something in Kokborok…"
           className="min-h-20 resize-none bg-background"
         />
-        {aiAssisted && (
-          <p className="-mt-2 text-xs text-muted-foreground">
-            Speaks automatically a moment after you stop typing.
-          </p>
-        )}
 
         <div className="flex items-center gap-3">
           <Button
-            onClick={() => (speaking ? cancel() : speak(text, langCode))}
-            disabled={!voiceAvailable || !text.trim()}
+            onClick={handleSpeak}
+            disabled={!text.trim() || status === "loading"}
             size="lg"
             className="gap-2"
           >
-            {speaking ? <SquareIcon className="size-3.5" /> : <PlayIcon className="size-3.5" />}
-            {speaking ? "Stop" : "Speak it"}
+            {status === "loading" ? (
+              <Loader2Icon className="size-3.5 animate-spin" />
+            ) : playing ? (
+              <SquareIcon className="size-3.5" />
+            ) : (
+              <PlayIcon className="size-3.5" />
+            )}
+            {status === "loading" ? "Synthesizing…" : "Speak it"}
           </Button>
-          <Waveform active={speaking} className="flex-1" />
+          <Waveform active={playing} className="flex-1" />
         </div>
 
-        <div className="rounded-lg border border-border/70 bg-muted/40 p-4">
-          <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-            Reconstructed as it&apos;s spoken
-          </p>
-          <p className="text-base leading-relaxed">
-            {words.map((word, i) => (
-              <motion.span
-                key={`${i}-${word}`}
-                animate={{
-                  opacity: i === wordIndex ? 1 : speaking ? 0.35 : 0.85,
-                  color: i === wordIndex ? "var(--color-foreground)" : undefined,
-                }}
-                className="mr-1.5 inline-block"
-              >
-                {word}
-              </motion.span>
-            ))}
-          </p>
-        </div>
-
-        {!supported && (
+        {status === "loading" && (
           <p className="text-xs text-muted-foreground">
-            Speech synthesis isn&apos;t available in this browser.
+            Cloning a Kokborok voice with XTTS v2 from ~30s of reference audio — first request
+            after a cold start can take a minute while the model loads.
           </p>
         )}
-        {supported && !voiceAvailable && (
-          <p className="text-xs text-muted-foreground">
-            No {language.name} voice installed on this device — try Chrome/Edge, or add the
-            language in your OS speech settings.
+
+        {result && status !== "loading" && (
+          <div className="flex flex-col gap-3 rounded-lg border border-border/70 bg-muted/40 p-4">
+            <MethodBadge method={result.method} confidence={result.confidence} />
+            <audio
+              ref={audioRef}
+              src={result.audio_url}
+              controls
+              className="w-full"
+              onPlay={() => setPlaying(true)}
+              onPause={() => setPlaying(false)}
+              onEnded={() => setPlaying(false)}
+            />
+          </div>
+        )}
+
+        {status === "error" && (
+          <p className="text-xs text-destructive">
+            {error}
+            {error?.includes("reference") && " Drop a WAV clip into data/audio/ and retry."}
           </p>
         )}
       </CardContent>

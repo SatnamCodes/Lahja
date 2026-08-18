@@ -3,6 +3,7 @@ import uuid
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -19,6 +20,18 @@ logger = logging.getLogger("lahja.app")
 FRONTEND_DIR = config.BASE_DIR / "frontend"
 
 app = FastAPI(title="LAHJA TTS Service", version="0.1.0")
+# The primary UI (Lahja/, Next.js) talks to this API through a same-origin
+# rewrite proxy (see Lahja/next.config.ts), so CORS isn't load-bearing for
+# the default demo. It's still opened up here for anyone hitting the API
+# directly from a different origin (e.g. `next start` in production, or a
+# separately hosted frontend) - this backend serves no cookies/auth, so a
+# permissive origin list doesn't expose anything.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.mount("/audio", StaticFiles(directory=str(config.OUTPUT_DIR)), name="audio")
 app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 

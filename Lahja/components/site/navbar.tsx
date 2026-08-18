@@ -6,10 +6,25 @@ import { MoonIcon, SunIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { useIsClient } from "@/hooks/use-is-client"
+import { useBackendHealth } from "@/hooks/use-backend-health"
+import { cn } from "@/lib/utils"
+
+const STATUS_LABEL = {
+  checking: "Checking backend…",
+  online: "Backend online",
+  offline: "Backend offline",
+} as const
+
+const STATUS_DOT = {
+  checking: "bg-muted-foreground animate-pulse",
+  online: "bg-emerald-500",
+  offline: "bg-destructive",
+} as const
 
 export function Navbar() {
   const { resolvedTheme, setTheme } = useTheme()
   const mounted = useIsClient()
+  const { status, device } = useBackendHealth()
 
   return (
     <motion.header
@@ -25,9 +40,16 @@ export function Navbar() {
         <a href="#features" className="transition-colors hover:text-foreground">
           Features
         </a>
-        <a href="#ai-assisted" className="transition-colors hover:text-foreground">
-          AI-assisted
+        <a href="#how-it-works" className="transition-colors hover:text-foreground">
+          How it works
         </a>
+        <span
+          className="flex items-center gap-1.5"
+          title={device ? `device: ${device}` : undefined}
+        >
+          <span className={cn("size-1.5 rounded-full", STATUS_DOT[status])} />
+          {STATUS_LABEL[status]}
+        </span>
       </nav>
       <Button
         variant="ghost"

@@ -1,8 +1,11 @@
 {
-  "name": "next-app",
+  "name": "lahja-web",
   "version": "0.0.1",
   "type": "module",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
