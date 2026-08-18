@@ -3,6 +3,7 @@ import uuid
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -15,8 +16,16 @@ from .tts_engine import engine
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("lahja.app")
 
+FRONTEND_DIR = config.BASE_DIR / "frontend"
+
 app = FastAPI(title="LAHJA TTS Service", version="0.1.0")
 app.mount("/audio", StaticFiles(directory=str(config.OUTPUT_DIR)), name="audio")
+app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
+
+
+@app.get("/")
+def index():
+    return FileResponse(str(FRONTEND_DIR / "index.html"))
 
 
 class SpeakRequest(BaseModel):

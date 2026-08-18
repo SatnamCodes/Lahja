@@ -13,3 +13,4 @@ torchaudio
 sentencepiece
 requests
 phonemizer
+resemblyzer

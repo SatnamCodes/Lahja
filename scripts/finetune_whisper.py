@@ -83,13 +83,13 @@ def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     training_args = Seq2SeqTrainingArguments(
         output_dir=str(OUTPUT_DIR),
-        per_device_train_batch_size=4,
-        gradient_accumulation_steps=2,
+        per_device_train_batch_size=2,
+        gradient_accumulation_steps=4,
         learning_rate=1e-5,
-        num_train_epochs=10,
+        num_train_epochs=4,
         fp16=torch.cuda.is_available(),
         save_strategy="no",
-        logging_steps=5,
+        logging_steps=10,
         report_to=[],
     )
     trainer = Seq2SeqTrainer(
