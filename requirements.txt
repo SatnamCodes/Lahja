@@ -10,3 +10,6 @@ accelerate
 coqui-tts
 torch
 torchaudio
+sentencepiece
+requests
+phonemizer

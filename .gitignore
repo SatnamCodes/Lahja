@@ -223,4 +223,7 @@ __marimo__/
 /models/
 /data/audio/*.wav
 !/data/audio/.gitkeep
+# regenerable via scripts/prepare_audio.py - keep the manifest, not the clips
+/data/audio_segments/
+/data/uploads/
 
