@@ -1,4 +1,5 @@
 import { Hero } from "@/components/site/hero"
+import { TribalLanguageMapSection } from "@/components/site/tribal-language-map-section"
 import { FeatureSectionShell } from "@/components/site/feature-section-shell"
 import { FeatureTextToSpeech } from "@/components/site/feature-text-to-speech"
 import { FeatureSpeechToText } from "@/components/site/feature-speech-to-text"
@@ -11,6 +12,7 @@ export default function Page() {
   return (
     <main className="bg-background">
       <Hero />
+      <TribalLanguageMapSection />
 
       <div id="features">
         <FeatureSectionShell

@@ -17,20 +17,38 @@ export function FeatureTextToSpeech() {
   const [result, setResult] = React.useState<SpeakResponse | null>(null)
   const [error, setError] = React.useState<string | null>(null)
   const [playing, setPlaying] = React.useState(false)
+  const [spokenText, setSpokenText] = React.useState<string | null>(null)
   const audioRef = React.useRef<HTMLAudioElement | null>(null)
 
-  async function handleSpeak() {
+  async function synthesize() {
     if (!text.trim() || status === "loading") return
     setStatus("loading")
     setError(null)
     try {
       const data = await speak(text.trim())
       setResult(data)
+      setSpokenText(text.trim())
       setStatus("idle")
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Synthesis failed.")
       setStatus("error")
     }
+  }
+
+  // The button doubles as playback transport once audio exists (matching the
+  // stop icon it shows while playing): re-synthesizing on every click would
+  // silently re-hit the backend instead of just pausing.
+  function handleClick() {
+    if (result && audioRef.current && text.trim() === spokenText) {
+      if (playing) {
+        audioRef.current.pause()
+      } else {
+        audioRef.current.currentTime = 0
+        audioRef.current.play().catch(() => {})
+      }
+      return
+    }
+    synthesize()
   }
 
   React.useEffect(() => {
@@ -58,7 +76,7 @@ export function FeatureTextToSpeech() {
 
         <div className="flex items-center gap-3">
           <Button
-            onClick={handleSpeak}
+            onClick={handleClick}
             disabled={!text.trim() || status === "loading"}
             size="lg"
             className="gap-2"
@@ -70,7 +88,7 @@ export function FeatureTextToSpeech() {
             ) : (
               <PlayIcon className="size-3.5" />
             )}
-            {status === "loading" ? "Synthesizing…" : "Speak it"}
+            {status === "loading" ? "Synthesizing…" : playing ? "Pause" : "Speak it"}
           </Button>
           <Waveform active={playing} className="flex-1" />
         </div>
