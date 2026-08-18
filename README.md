@@ -72,3 +72,96 @@ or `cpu`.
 
 Set `LAHJA_PUBLIC_BASE_URL` (default `http://localhost:8000`) if the
 service is reachable at a different host/port than it binds to.
+
+## Feature 2: Text(Kokborok) <-> Text(English) translation
+
+Kokborok has no entry in standard NLLB-200 either, so this uses
+[`MWirelabs/kokborok-mt`](https://huggingface.co/MWirelabs/kokborok-mt) -
+`nllb-200-distilled-600M` fine-tuned with a custom `trp_Latn` token on
+~36k parallel sentences (CC-BY-4.0).
+
+**This repo is gated on Hugging Face** (free, but requires agreeing to
+share contact info). Before the first request:
+
+1. Log in to Hugging Face and accept the terms at
+   https://huggingface.co/MWirelabs/kokborok-mt
+2. Create an access token at https://huggingface.co/settings/tokens
+3. `pip3 install --break-system-packages huggingface_hub` (if not already
+   pulled in transitively) and either run `huggingface-cli login`, or export
+   the token so `transformers` picks it up automatically:
+   ```bash
+   export HF_TOKEN=hf_your_token_here
+   ```
+
+Without this, `/api/translate` and `/api/chat` (which depends on it for the
+trp<->eng bridge) fail with a 503 pointing at the gated-repo error.
+
+```
+POST /api/translate
+{"text": "Nwng bubagra tamwi?", "source_language": "trp", "target_language": "eng"}
+
+-> {"translated_text": "How are you?", "confidence": 0.7, "method": "kokborok_mt_nllb"}
+```
+
+```bash
+./scripts/test_translate.sh
+```
+
+## Feature 3: Kokborok chatbot (Kokborok question -> Kokborok answer)
+
+No LLM has native Kokborok fluency, so this bridges through English: the
+question is translated trp->eng with the same MT model, sent to a hosted
+LLM, and the answer translated back eng->trp. Requires a free Groq API key
+(https://console.groq.com/keys):
+
+```bash
+export GROQ_API_KEY=your-key-here
+# optional: export GROQ_MODEL=llama-3.3-70b-versatile (default)
+```
+
+```
+POST /api/chat
+{"text": "Nwng bubagra tamwi?"}
+
+-> {"answer": "<Kokborok answer>", "english_bridge": "<English answer, for debugging>",
+    "confidence": 0.5, "method": "mt_bridge_llm"}
+```
+
+```bash
+./scripts/test_chat.sh
+```
+
+## Feature 4: Kokborok speech -> text (ASR)
+
+No native or bridge-language Kokborok ASR model exists (Meta MMS's
+1,107-language ASR set doesn't include `trp`). Until a fine-tuned checkpoint
+is available, this falls back to general-purpose multilingual Whisper doing
+its own language detection - returned at low confidence (`0.15`) and
+labeled `whisper_zero_shot_bridge` so it's never mistaken for a real result.
+
+**To fine-tune once labeled audio is available:** drop a manifest at
+`data/asr_manifest.jsonl`, one JSON object per line:
+
+```json
+{"audio": "data/audio/clip001.wav", "text": "Nwng bubagra tamwi?"}
+```
+
+then run:
+
+```bash
+python3 scripts/finetune_whisper.py
+```
+
+This saves a checkpoint to `models/whisper_finetuned/trp/`, which
+`ASREngine` picks up automatically on next load (method becomes
+`whisper_fine_tuned`, confidence `0.6`).
+
+```
+POST /api/transcribe   (multipart, field name "audio")
+
+-> {"text": "...", "confidence": 0.15, "method": "whisper_zero_shot_bridge"}
+```
+
+```bash
+./scripts/test_transcribe.sh http://localhost:8000 data/audio/clip001.wav
+```
