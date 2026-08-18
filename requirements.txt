@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+python-multipart
+soundfile
+librosa
+scipy
+# pinned: transformers 5.x dropped an internal fn coqui-tts still imports
+transformers==4.57.6
+accelerate
+coqui-tts
+torch
+torchaudio
+sentencepiece
+requests
+phonemizer

@@ -1,0 +1,22 @@
+# ASR component. Scoped to asr/ so Lahja's root .gitignore stays untouched.
+
+.venv/
+
+# Corpus audio: large, binary, and often not ours to redistribute.
+data/raw/**
+!data/raw/.gitkeep
+
+# Derived artifacts - regenerate with scripts/prepare_data.py.
+data/processed/**
+!data/processed/.gitkeep
+
+# Synthetic smoke-test fixtures - regenerate with scripts/make_fixture.py.
+data/fixtures/
+
+# Model weights and adapters.
+checkpoints/**
+!checkpoints/.gitkeep
+
+# Keep results/metrics.jsonl (the run history is worth versioning), drop the
+# bulky per-utterance prediction dumps.
+results/predictions_*.jsonl

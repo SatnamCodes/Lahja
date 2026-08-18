@@ -217,3 +217,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Lahja: generated audio, downloaded models, and reference/training clips
+# (binary, large, and clips are provided at runtime rather than committed)
+/outputs/*.wav
+/models/
+/data/audio/*.wav
+!/data/audio/.gitkeep
+# regenerable via scripts/prepare_audio.py - keep the manifest, not the clips
+/data/audio_segments/
+/data/uploads/
+
