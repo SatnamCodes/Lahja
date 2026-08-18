@@ -50,9 +50,12 @@
   <!-- SPEAK -->
   <section class="panel active" id="panel-speak">
     <div class="panel-head">
-      <h2>Text <span class="arrow">→</span> Speech</h2>
-      <p>Zero-shot voice cloning against Kokborok reference clips (XTTS&nbsp;v2), with a
-        phonetically-adjacent bridge model as fallback.</p>
+      <div class="icon-tile tile-speak"><svg viewBox="0 0 24 24" class="glyph"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></div>
+      <div>
+        <h2>Text <span class="arrow">→</span> Speech</h2>
+        <p>Zero-shot voice cloning against Kokborok reference clips (XTTS&nbsp;v2), with a
+          phonetically-adjacent bridge model as fallback.</p>
+      </div>
     </div>
     <form id="form-speak" class="tool-form">
       <textarea name="text" placeholder="Nwng bubagra tamwi?" required>Nwng bubagra tamwi?</textarea>
@@ -67,9 +70,12 @@
   <!-- TRANSLATE -->
   <section class="panel" id="panel-translate">
     <div class="panel-head">
-      <h2>Kokborok <span class="arrow">⇄</span> English</h2>
-      <p>MWirelabs/kokborok-mt — nllb-200-distilled-600M fine-tuned with a custom
-        <code>trp_Latn</code> token.</p>
+      <div class="icon-tile tile-translate"><svg viewBox="0 0 24 24" class="glyph"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></div>
+      <div>
+        <h2>Kokborok <span class="arrow">⇄</span> English</h2>
+        <p>MWirelabs/kokborok-mt — nllb-200-distilled-600M fine-tuned with a custom
+          <code>trp_Latn</code> token.</p>
+      </div>
     </div>
     <form id="form-translate" class="tool-form">
       <div class="direction-toggle">
@@ -88,9 +94,12 @@
   <!-- CHAT -->
   <section class="panel" id="panel-chat">
     <div class="panel-head">
-      <h2>Kokborok question <span class="arrow">→</span> Kokborok answer</h2>
-      <p>No LLM has native Kokborok fluency, so this bridges through English: translate
-        in, ask a hosted model, translate back out.</p>
+      <div class="icon-tile tile-chat"><svg viewBox="0 0 24 24" class="glyph"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></div>
+      <div>
+        <h2>Kokborok question <span class="arrow">→</span> Kokborok answer</h2>
+        <p>No LLM has native Kokborok fluency, so this bridges through English: translate
+          in, ask a hosted model, translate back out.</p>
+      </div>
     </div>
     <form id="form-chat" class="tool-form">
       <textarea name="text" placeholder="Bathrwm boiya?" required>Bathrwm boiya?</textarea>
@@ -109,10 +118,13 @@
   <!-- TRANSCRIBE -->
   <section class="panel" id="panel-transcribe">
     <div class="panel-head">
-      <h2>Speech <span class="arrow">→</span> Text</h2>
-      <p>No Kokborok ASR model exists anywhere. This tries a fine-tuned checkpoint first,
-        then a language-agnostic <strong>IPA phoneme recognizer</strong> (real sounds heard,
-        not guessed words), then generic Whisper as a last resort.</p>
+      <div class="icon-tile tile-transcribe"><svg viewBox="0 0 24 24" class="glyph"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></div>
+      <div>
+        <h2>Speech <span class="arrow">→</span> Text</h2>
+        <p>No Kokborok ASR model exists anywhere. This tries a fine-tuned checkpoint first,
+          then a language-agnostic <strong>IPA phoneme recognizer</strong> (real sounds heard,
+          not guessed words), then generic Whisper as a last resort.</p>
+      </div>
     </div>
     <form id="form-transcribe" class="tool-form">
       <label class="file-drop" id="file-drop">
