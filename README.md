@@ -116,7 +116,7 @@ LLM, and the answer translated back eng->trp. Requires a free Groq API key
 
 ```bash
 export GROQ_API_KEY=your-key-here
-# optional: export GROQ_MODEL=llama-3.3-70b-versatile (default)
+# optional: export GROQ_MODEL=openai/gpt-oss-120b (default)
 ```
 
 ```
@@ -134,32 +134,59 @@ POST /api/chat
 ## Feature 4: Kokborok speech -> text (ASR)
 
 No native or bridge-language Kokborok ASR model exists (Meta MMS's
-1,107-language ASR set doesn't include `trp`). Until a fine-tuned checkpoint
-is available, this falls back to general-purpose multilingual Whisper doing
-its own language detection - returned at low confidence (`0.15`) and
-labeled `whisper_zero_shot_bridge` so it's never mistaken for a real result.
+1,107-language ASR set doesn't include `trp`), and we don't currently have
+any labeled Kokborok audio to fine-tune with. `/api/transcribe` tries three
+tiers, in order, and is honest in the response about which one answered:
 
-**To fine-tune once labeled audio is available:** drop a manifest at
-`data/asr_manifest.jsonl`, one JSON object per line:
+1. **`whisper_fine_tuned`** (confidence `0.6`) - a real checkpoint fine-tuned
+   on labeled Kokborok audio. Not available yet; see below.
+2. **`phoneme_zero_shot_bridge`** (confidence `0.3`) - a language-agnostic
+   IPA phoneme recognizer
+   ([`facebook/wav2vec2-lv-60-espeak-cv-ft`](https://huggingface.co/facebook/wav2vec2-lv-60-espeak-cv-ft)).
+   Needs no Kokborok training data at all - it reports the sounds it hears
+   as IPA phoneme symbols instead of guessing words in a language it's
+   never seen. Not real Kokborok orthography, but a human can usually
+   reconstruct actual words from phonemes faster than from a
+   wrong-language word guess. Setup (one-time):
+   ```bash
+   pip3 install --break-system-packages phonemizer   # already in requirements.txt
+   python3 scripts/convert_phoneme_model.py
+   ```
+   The convert step exists because this model's weights only ship as
+   `pytorch_model.bin`, and `transformers` refuses to `torch.load()` that
+   on torch < 2.6 (CVE-2025-32434) - this repo stays on torch 2.5.x for
+   XTTS compatibility, so the script re-saves the weights as `safetensors`
+   locally instead of upgrading torch.
+3. **`whisper_zero_shot_bridge`** (confidence `0.15`) - generic
+   multilingual Whisper doing its own language ID, as a last resort if the
+   phoneme model isn't set up. Its output is confident words in whatever
+   language it guesses (Hindi/Devanagari script in testing), which is
+   actively misleading for Kokborok audio - used only when the phoneme
+   tier is unavailable.
+
+**To fine-tune once labeled Kokborok audio is available:** drop a manifest
+at `data/asr_manifest.jsonl`, one JSON object per line:
 
 ```json
 {"audio": "data/audio/clip001.wav", "text": "Nwng bubagra tamwi?"}
 ```
 
-then run:
+`scripts/prepare_audio.py` will segment any long recordings in
+`data/audio/*.mp3` into short clips and write a fill-in-the-blank
+`data/asr_manifest_template.jsonl` to start from. Then run:
 
 ```bash
 python3 scripts/finetune_whisper.py
 ```
 
 This saves a checkpoint to `models/whisper_finetuned/trp/`, which
-`ASREngine` picks up automatically on next load (method becomes
-`whisper_fine_tuned`, confidence `0.6`).
+`ASREngine` picks up automatically on next load and prefers over both
+zero-shot tiers.
 
 ```
 POST /api/transcribe   (multipart, field name "audio")
 
--> {"text": "...", "confidence": 0.15, "method": "whisper_zero_shot_bridge"}
+-> {"text": "s a j ð e j...", "confidence": 0.3, "method": "phoneme_zero_shot_bridge"}
 ```
 
 ```bash
