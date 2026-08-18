@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Lahja — Kokborok Language Layer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A digital language layer for Kokborok: speech, translation, chat, and transcription, each honestly labeled by the method that produced it.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314110d'/%3E%3Cg stroke='%23c9683f' stroke-width='6' stroke-linecap='round'%3E%3Cline x1='14' y1='34' x2='14' y2='30'/%3E%3Cline x1='24' y1='40' x2='24' y2='24'/%3E%3Cline x1='34' y1='46' x2='34' y2='18'/%3E%3C/g%3E%3Cg stroke='%233d8177' stroke-width='6' stroke-linecap='round'%3E%3Cline x1='44' y1='40' x2='44' y2='24'/%3E%3Cline x1='54' y1='34' x2='54' y2='30'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="bg-pattern" aria-hidden="true"></div>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow reveal" style="--i:0">ককবরক · কক-বরক · Tripura, Northeast India</p>
+    <h1 class="reveal" style="--i:1">Lahja</h1>
+    <p class="tagline reveal" style="--i:2">
+      A digital language layer for <strong>Kokborok</strong> (ISO&nbsp;639-3: <code>trp</code>).
+      No native model exists for this language yet — so every response here names
+      the exact method that produced it, and how much to trust it.
+    </p>
+    <div class="waveform reveal" style="--i:3" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs reveal" style="--i:4" id="tabs" role="tablist">
+  <button class="tab active" data-tab="speak" role="tab" aria-selected="true">
+    <span class="tab-num">01</span> Speak
+  </button>
+  <button class="tab" data-tab="translate" role="tab" aria-selected="false">
+    <span class="tab-num">02</span> Translate
+  </button>
+  <button class="tab" data-tab="chat" role="tab" aria-selected="false">
+    <span class="tab-num">03</span> Chat
+  </button>
+  <button class="tab" data-tab="transcribe" role="tab" aria-selected="false">
+    <span class="tab-num">04</span> Transcribe
+  </button>
+</nav>
+
+<main class="panels reveal" style="--i:5">
+
+  <!-- SPEAK -->
+  <section class="panel active" id="panel-speak">
+    <div class="panel-head">
+      <h2>Text <span class="arrow">→</span> Speech</h2>
+      <p>Zero-shot voice cloning against Kokborok reference clips (XTTS&nbsp;v2), with a
+        phonetically-adjacent bridge model as fallback.</p>
+    </div>
+    <form id="form-speak" class="tool-form">
+      <textarea name="text" placeholder="Nwng bubagra tamwi?" required>Nwng bubagra tamwi?</textarea>
+      <button type="submit" class="btn">Synthesize <span class="btn-glyph">◍</span></button>
+    </form>
+    <div class="result" id="result-speak" hidden>
+      <div class="result-status"></div>
+      <audio controls id="audio-speak"></audio>
+    </div>
+  </section>
+
+  <!-- TRANSLATE -->
+  <section class="panel" id="panel-translate">
+    <div class="panel-head">
+      <h2>Kokborok <span class="arrow">⇄</span> English</h2>
+      <p>MWirelabs/kokborok-mt — nllb-200-distilled-600M fine-tuned with a custom
+        <code>trp_Latn</code> token.</p>
+    </div>
+    <form id="form-translate" class="tool-form">
+      <div class="direction-toggle">
+        <button type="button" class="dir-btn active" data-src="trp" data-tgt="eng">Kokborok → English</button>
+        <button type="button" class="dir-btn" data-src="eng" data-tgt="trp">English → Kokborok</button>
+      </div>
+      <textarea name="text" placeholder="Nwng bubagra tamwi?" required>Nwng bubagra tamwi?</textarea>
+      <button type="submit" class="btn">Translate <span class="btn-glyph">◍</span></button>
+    </form>
+    <div class="result" id="result-translate" hidden>
+      <div class="result-status"></div>
+      <p class="result-text" id="text-translate"></p>
+    </div>
+  </section>
+
+  <!-- CHAT -->
+  <section class="panel" id="panel-chat">
+    <div class="panel-head">
+      <h2>Kokborok question <span class="arrow">→</span> Kokborok answer</h2>
+      <p>No LLM has native Kokborok fluency, so this bridges through English: translate
+        in, ask a hosted model, translate back out.</p>
+    </div>
+    <form id="form-chat" class="tool-form">
+      <textarea name="text" placeholder="Bathrwm boiya?" required>Bathrwm boiya?</textarea>
+      <button type="submit" class="btn">Ask <span class="btn-glyph">◍</span></button>
+    </form>
+    <div class="result" id="result-chat" hidden>
+      <div class="result-status"></div>
+      <p class="result-text" id="text-chat-answer"></p>
+      <details class="bridge-details">
+        <summary>English bridge (debug)</summary>
+        <p id="text-chat-bridge"></p>
+      </details>
+    </div>
+  </section>
+
+  <!-- TRANSCRIBE -->
+  <section class="panel" id="panel-transcribe">
+    <div class="panel-head">
+      <h2>Speech <span class="arrow">→</span> Text</h2>
+      <p>No Kokborok ASR model exists anywhere. This tries a fine-tuned checkpoint first,
+        then a language-agnostic <strong>IPA phoneme recognizer</strong> (real sounds heard,
+        not guessed words), then generic Whisper as a last resort.</p>
+    </div>
+    <form id="form-transcribe" class="tool-form">
+      <label class="file-drop" id="file-drop">
+        <input type="file" name="audio" accept="audio/*" required>
+        <span class="file-drop-label">Drop a Kokborok audio clip, or click to choose</span>
+      </label>
+      <button type="submit" class="btn">Transcribe <span class="btn-glyph">◍</span></button>
+    </form>
+    <div class="result" id="result-transcribe" hidden>
+      <div class="result-status"></div>
+      <p class="result-text mono" id="text-transcribe"></p>
+      <p class="phoneme-note" id="note-transcribe" hidden>
+        This is IPA phonetic notation — the sounds heard, not Kokborok spelling.
+        A Kokborok speaker can usually reconstruct real words from this faster than
+        from a wrong-language guess.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>Every result above is an <em>approximation</em> — Kokborok has no native model for
+    any of these tasks yet. The <span class="mono">method</span> and
+    <span class="mono">confidence</span> fields are never hidden.</p>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

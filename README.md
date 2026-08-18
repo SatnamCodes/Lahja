@@ -2,6 +2,12 @@
 
 A digital language layer for Kokborok (ISO 639-3: `trp`).
 
+## Frontend
+
+`./scripts/run.sh` serves a single-page UI at `/` (built from `frontend/`,
+plain HTML/CSS/JS - no build step) with one tab per feature below, each
+calling its API and rendering the `confidence`/`method` it got back.
+
 ## Feature 1: Text(Kokborok) -> Speech(Kokborok)
 
 No native Kokborok TTS model exists, so this service approximates one two
@@ -36,6 +42,19 @@ pip3 install --break-system-packages -r requirements.txt
 Drop reference audio (WAV) into `data/audio/`:
 - Early on: the ~10-20s clip you have available.
 - Later: the larger aligned batch (~30-100 short utterances) as it arrives.
+
+For longer source recordings (e.g. multi-minute narrations), run
+`python3 scripts/prepare_audio.py` first to segment them into short clips,
+then `python3 scripts/select_reference_clips.py` to pick the final
+`data/audio/reference_*.wav` set. The second step matters more than it
+looks: it embeds every candidate clip with a real speaker-verification
+model (resemblyzer) and keeps only the ones that are actually the same
+speaker - source recordings with a narrator plus dramatized character
+voices (common in dubbed/scripted audio) will otherwise get blended into
+one inconsistent XTTS speaker embedding, which measurably hurts voice
+cloning quality. Naturalness beyond this is capped by not having any
+Kokborok-specific training data (see Feature 4) - reference curation
+improves voice consistency, not the underlying accent/prosody model.
 
 ### Run
 
