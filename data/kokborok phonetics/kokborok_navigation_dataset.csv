@@ -1,0 +1,85 @@
+Category,Kokborok,English,Hindi,Part_of_Speech,Example_Context,Phonetic_Approx
+GREETINGS,Jamu kokborok mo,Good morning,सुप्रभात,Greeting,When meeting someone,JAH-moo KOK-bo-rok MOH
+GREETINGS,Jamu sonyo mo,Good afternoon,नमस्ते दोपहर,Greeting,During afternoon,JAH-moo SON-yo MOH
+GREETINGS,Jamu ronyo mo,Good evening,नमस्ते शाम,Greeting,In evening,JAH-moo RON-yo MOH
+GREETINGS,Jamu jaga mo,Good night,शुभ रात्रि,Greeting,Before sleep,JAH-moo JAH-gah MOH
+GREETINGS,Ke asa mo?,How are you?,आप कैसे हो?,Question,Casual greeting,KAY AH-sah MOH
+BASIC_COURTESY,Joi ngok,Thank you,धन्यवाद,Interjection,After help,JOY N-gok
+BASIC_COURTESY,Apologies,Sorry,माफी,Interjection,Making apology,AH-poh-LOH-jees
+BASIC_COURTESY,Mi jag,Yes,हाँ,Affirmation,Answering yes,MEE JAG
+BASIC_COURTESY,Ny jag,No,नहीं,Negation,Answering no,NY JAG
+DIRECTIONS,Dakten go,Turn left,बाएं मुड़ें,Verb+Direction,Traffic instruction,DOCK-ten GOH
+DIRECTIONS,Tomen go,Turn right,दाएं मुड़ें,Verb+Direction,Traffic instruction,TOH-men GOH
+DIRECTIONS,Age chukde,Go straight,सीधे चलें,Verb+Direction,Traffic instruction,AH-gay CHOOK-day
+DIRECTIONS,Thangde,Go,जाएं,Verb,General movement,THONG-day
+DIRECTIONS,Dakten ha,Left side,बाईं ओर,Direction,Location reference,DOCK-ten HAH
+DIRECTIONS,Tomen ha,Right side,दाईं ओर,Direction,Location reference,TOH-men HAH
+DIRECTIONS,Mokto,Straight,सीधा,Adverb,Direction indicator,MOK-toh
+DIRECTIONS,Age,Front/Forward,आगे,Direction,Position reference,AH-gay
+DIRECTIONS,Kola,Back,पीछे,Direction,Position reference,KOH-lah
+LOCATIONS,Sadak,Road/Street,सड़क,Noun,Navigation reference,SAH-dock
+LOCATIONS,Ek,Corner,कोना,Noun,Intersection point,EHK
+LOCATIONS,Ghor,House/Building,मकान,Noun,Landmark,GHOR
+LOCATIONS,Bazar,Market,बाजार,Noun,Shopping area,BAH-zar
+LOCATIONS,Asthan,Station,स्टेशन,Noun,Train/bus station,AHS-thahn
+LOCATIONS,Mandir,Temple,मंदिर,Noun,Religious site,MAN-deer
+LOCATIONS,Masjid,Mosque,मस्जिद,Noun,Religious site,MAHS-jeed
+LOCATIONS,Hospital,Hospital,अस्पताल,Noun,Medical center,HOS-pi-tal
+LOCATIONS,School,School,स्कूल,Noun,Educational,SKOOL
+LOCATIONS,Park,Park,पार्क,Noun,Recreation,PARK
+DISTANCE,Kacha,Near,पास,Adjective,Close distance,KAH-chah
+DISTANCE,Duro,Far,दूर,Adjective,Long distance,DOO-roh
+DISTANCE,Thiki,Nearby,पास में,Adjective,Very close,THEE-kee
+DISTANCE,Mokto duro,Very far,बहुत दूर,Phrase,Long distance,MOK-toh DOO-roh
+DISTANCE,Seng meter,Few meters,कुछ मीटर,Noun+Noun,Short distance,SENG MAY-ter
+DISTANCE,Oksa kilometer,One kilometer,एक किलोमीटर,Noun+Noun,Long distance,OK-sah KIL-oh-mee-tar
+QUESTIONS,Ke acho?,Where is it?,यह कहाँ है?,Question,Location inquiry,KAY AH-choh
+QUESTIONS,Ke thangde?,Where to go?,कहाँ जाएं?,Question,Direction inquiry,KAY THONG-day
+QUESTIONS,Duro ha?,Is it far?,क्या यह दूर है?,Question,Distance check,DOO-roh HAH
+QUESTIONS,Ke jaagga?,What place?,कौन सी जगह?,Question,Location name,KAY JAAG-gah
+QUESTIONS,Kaida?,How much time?,कितना समय?,Question,Duration inquiry,KAH-ee-dah
+VERBS,Himde,Walk,चलना,Verb,Movement,HIM-day
+VERBS,Thangde,Go,जाना,Verb,Movement,THONG-day
+VERBS,Ashde,Come,आना,Verb,Movement,AHSH-day
+VERBS,Khulugde,Open,खोलना,Verb,Action,KHOO-loo-gday
+VERBS,Bundugde,Close,बंद करना,Verb,Action,BOON-doo-gday
+VERBS,Chukde,Sit,बैठना,Verb,Position,CHOOK-day
+VERBS,Dhandugde,Stand,खड़े होना,Verb,Position,DHAHN-doo-gday
+VERBS,Chade,Eat,खाना,Verb,Action,CHAH-day
+VERBS,Nwngde,Drink,पीना,Verb,Action,N-wing-day
+PRONOUNS,Ang,I,मैं,Pronoun,Subject,ANG
+PRONOUNS,Nwng,You,तुम,Pronoun,Subject,N-wing
+PRONOUNS,Bo,He/She,वह,Pronoun,Subject,BOH
+PRONOUNS,Amo,This,यह,Pronoun,Demonstrative,AH-moh
+PRONOUNS,Oiha,That,वह,Pronoun,Demonstrative,OY-hah
+NUMBERS,Oksa,One,एक,Number,Counting,OK-sah
+NUMBERS,Arak,Two,दो,Number,Counting,AH-rock
+NUMBERS,Thum,Three,तीन,Number,Counting,THOOM
+NUMBERS,Paji,Four,चार,Number,Counting,PAH-jee
+NUMBERS,Sonja,Five,पाँच,Number,Counting,SON-jah
+NUMBERS,Horum,Six,छः,Number,Counting,HOR-om
+NUMBERS,Thajok,Seven,सात,Number,Counting,THAH-jok
+NUMBERS,Sanja,Eight,आठ,Number,Counting,SAN-jah
+NUMBERS,Gha,Nine,नौ,Number,Counting,GHAH
+NUMBERS,Thasa,Ten,दस,Number,Counting,THAH-sah
+NUMBERS,Thasa jok oksa,Eleven,ग्यारह,Number,Counting,THAH-sah JOK OK-sah
+NUMBERS,Bees,Twenty,बीस,Number,Counting,BEES
+NUMBERS,This,Thirty,तीस,Number,Counting,THEES
+NUMBERS,Chalis,Forty,चालीस,Number,Counting,CHAH-lis
+NUMBERS,Panchas,Fifty,पचास,Number,Counting,PAHN-chas
+NUMBERS,Sat,Hundred,सौ,Number,Counting,SAT
+TIME,Jamu,Morning,सुबह,Noun,Time of day,JAH-moo
+TIME,Sonyo,Afternoon,दोपहर,Noun,Time of day,SON-yo
+TIME,Ronyo,Evening,शाम,Noun,Time of day,RON-yo
+TIME,Jaga,Night,रात,Noun,Time of day,JAH-gah
+TIME,Aaj,Today,आज,Noun,Time reference,AHJ
+TIME,Kalen,Tomorrow,कल,Noun,Time reference,KAH-len
+TIME,Jina,Yesterday,कल,Noun,Time reference,JEE-nah
+NAVIGATION_PHRASE,Sadak chakao,Turn on road,सड़क पर मुड़ें,Phrase,Direction,SAH-dock CHAH-kah-oh
+NAVIGATION_PHRASE,Ek thikhe,At corner,कोने पर,Phrase,Location,EHK THEE-khay
+NAVIGATION_PHRASE,Age chukde mokto,Go straight ahead,सीधे चलो,Phrase,Direction,AH-gay CHOOK-day MOK-toh
+NAVIGATION_PHRASE,Dakten ha asthan,Station is left,स्टेशन बाईं ओर है,Phrase,Location,DOCK-ten HAH AHS-thahn
+NAVIGATION_PHRASE,Hospital kacha,Hospital is near,अस्पताल पास है,Phrase,Distance,HOS-pi-tal KAH-chah
+NAVIGATION_PHRASE,Mandir duro ha,Temple is far,मंदिर दूर है,Phrase,Distance,MAN-deer DOO-roh HAH
+NAVIGATION_PHRASE,Meter seng thikhe,In few meters,कुछ मीटर में,Phrase,Distance,MAY-ter SENG THEE-khay
+NAVIGATION_PHRASE,Eka thiki,Wait here,यहाँ रुको,Phrase,Location,EH-kah THEE-kee
