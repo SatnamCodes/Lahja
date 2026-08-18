@@ -1,0 +1,83 @@
+# Smoke-test config: the whole pipeline, tiny everything.
+#
+# Purpose is to catch shape/config/API errors in ~a minute BEFORE launching a
+# real training run - not to produce a meaningful WER. It runs against the
+# synthetic fixture corpus (data/fixtures/raw), never against data/raw.
+#
+# For a higher-fidelity rehearsal on the real model:
+#   python scripts/smoke_test.py --set model.name=openai/whisper-small
+
+run_name: smoke
+
+paths:
+  raw_dir: data/fixtures/raw
+  processed_dir: data/fixtures/processed
+  results_dir: data/fixtures/results
+  # Deliberately NOT results/metrics.jsonl: smoke runs score synthetic tones,
+  # and mixing those WERs into the real run history would poison any
+  # comparison made from that file later.
+  metrics_file: data/fixtures/smoke_metrics.jsonl
+
+data:
+  layout: auto
+  speaker_strategy: parent_dir
+  speaker_delimiter: "_"
+  probe_durations: true
+  max_duration: 30.0
+  min_duration: 0.1
+
+split:
+  ratios:
+    train: 0.5
+    val: 0.25
+    test: 0.25
+  seed: 1234
+  allow_speaker_overlap: false
+
+text:
+  lowercase: true
+  strip_punctuation: true
+  unicode_form: NFC
+
+model:
+  name: openai/whisper-tiny   # ~150 MB instead of ~1 GB
+  language: en
+  task: transcribe
+  device: auto
+  precision: auto
+
+lora:
+  r: 8
+  alpha: 16
+  dropout: 0.05
+  bias: none
+  target_modules: [q_proj, v_proj]
+
+train:
+  output_dir: data/fixtures/checkpoints/smoke
+  batch_size: 2
+  gradient_accumulation_steps: 1
+  eval_batch_size: 2
+  learning_rate: 1.0e-3
+  num_train_epochs: 1
+  max_steps: 2
+  warmup_steps: 0
+  logging_steps: 1
+  eval_strategy: "no"
+  save_strategy: steps
+  save_steps: 2
+  save_total_limit: 1
+  gradient_checkpointing: false
+  precision: auto
+  seed: 1234
+  dataloader_num_workers: 0
+  resume: none
+  final_eval: true
+  final_eval_split: val
+
+eval:
+  split: test
+  batch_size: 2
+  max_new_tokens: 16
+  num_beams: 1
+  limit: 2
