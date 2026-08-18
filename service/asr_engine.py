@@ -135,10 +135,40 @@ class ASREngine:
             return None
         return TranscriptionResult(phonemes, confidence=0.3, method=config.METHOD_ASR_PHONEME_BRIDGE)
 
-    def transcribe(self, audio_path: Path) -> TranscriptionResult:
+    def _load_audio(self, audio_path: Path):
+        """
+        Decode audio_path to a 16kHz mono array. Browser mic recordings
+        arrive as webm/opus, which libsndfile (what librosa.load tries
+        first) can't open at all ("Format not recognised") - so every input
+        goes through ffmpeg to a normalized wav first rather than relying on
+        librosa's limited built-in format support.
+        """
+        import subprocess
+        import tempfile
+
         import librosa
 
-        audio, sr = librosa.load(str(audio_path), sr=16000, mono=True)
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            normalized_path = Path(tmp.name)
+        try:
+            proc = subprocess.run(
+                [
+                    "ffmpeg", "-y", "-i", str(audio_path),
+                    "-ar", "16000", "-ac", "1", "-f", "wav", str(normalized_path),
+                ],
+                capture_output=True,
+                timeout=30,
+            )
+            if proc.returncode != 0 or not normalized_path.exists() or normalized_path.stat().st_size == 0:
+                raise ValueError(
+                    f"Could not decode uploaded audio (ffmpeg: {proc.stderr.decode(errors='replace')[-300:]})"
+                )
+            return librosa.load(str(normalized_path), sr=16000, mono=True)
+        finally:
+            normalized_path.unlink(missing_ok=True)
+
+    def transcribe(self, audio_path: Path) -> TranscriptionResult:
+        audio, sr = self._load_audio(audio_path)
 
         result = self._transcribe_fine_tuned_or_whisper_bridge(audio, sr)
         if result is not None and result.method == config.METHOD_ASR_FINE_TUNED:
