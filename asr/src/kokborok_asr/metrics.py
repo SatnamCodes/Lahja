@@ -49,6 +49,22 @@ def compute_wer_cer(references: Sequence[str], hypotheses: Sequence[str]) -> dic
     }
 
 
+def split_provenance(cfg) -> dict[str, Any]:
+    """How the train/val/test split was grouped, for the run record.
+
+    Every WER/CER number is only interpretable alongside this. The Kokborok
+    corpus is a single narrator, so splits are disjoint by programme episode
+    rather than by speaker: train and test share a voice and the scores are
+    correspondingly optimistic. Recording it per run means a future reader of
+    metrics.jsonl cannot mistake these for speaker-disjoint numbers.
+    """
+    return {
+        "group_by": cfg.get("split.group_by", "speaker"),
+        "n_groups": cfg.get("split.n_groups"),
+        "speaker_optimistic": bool(cfg.get("split.speaker_optimistic", False)),
+    }
+
+
 def append_metrics(metrics_path: Path, record: dict[str, Any]) -> Path:
     """Append one run record to results/metrics.jsonl."""
     metrics_path = Path(metrics_path)

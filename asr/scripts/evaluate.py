@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from kokborok_asr.config import add_config_args, load_config  # noqa: E402
 from kokborok_asr.evaluation import log_sample_predictions, run_evaluation  # noqa: E402
-from kokborok_asr.metrics import append_metrics, write_predictions  # noqa: E402
+from kokborok_asr.metrics import append_metrics, split_provenance, write_predictions  # noqa: E402
 from kokborok_asr.modeling import build_model, build_processor, resolve_device  # noqa: E402
 from kokborok_asr.paths import read_split  # noqa: E402
 from kokborok_asr.text import normalizer_from_config  # noqa: E402
@@ -97,6 +97,8 @@ def main() -> int:
         {
             "event": "evaluate",
             "run_name": cfg.get("run_name"),
+            # How splits were grouped; every WER below is relative to this.
+            **split_provenance(cfg),
             "config": str(cfg.source),
             "model": cfg.get("model.name"),
             "language_proxy": cfg.get("model.language"),

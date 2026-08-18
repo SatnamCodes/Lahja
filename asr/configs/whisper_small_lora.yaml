@@ -12,16 +12,41 @@ paths:
   processed_dir: data/processed
   results_dir: results
   metrics_file: results/metrics.jsonl
+  # Read the manifest from outside raw_dir. The Kokborok manifest is built at
+  # the repo root (scripts/build_asr_dataset.py -> scripts/filter_bengali_script.py),
+  # one level above asr/. Still read-only; raw_dir is never written either way.
+  # Unset this to fall back to auto-detection inside raw_dir.
+  manifest_file: ../data/asr_manifest_clean.jsonl
 
 data:
-  # auto -> use manifest.csv if present, else audio/transcript pairs.
+  # auto -> dispatch on the manifest's suffix (.jsonl -> jsonl loader,
+  # .csv/.tsv -> manifest loader), else audio/transcript pairs.
   layout: auto
-  # How to attribute a clip to a speaker. This drives the split, so a wrong
-  # value here silently leaks speakers between train and test.
-  #   parent_dir      -> data/raw/spk01/utt003.wav        => "spk01"
-  #   filename_prefix -> data/raw/spk01_utt003.wav        => "spk01"
+  # Base for RELATIVE audio paths in a manifest. The jsonl manifest stores
+  # repo-root-relative paths ("data/asr_dataset/clip_0000.wav") while itself
+  # living in <repo>/data/, so resolving against its own directory would look
+  # for <repo>/data/data/asr_dataset/... and report every clip as missing -
+  # without raising. Must point at the repo root, one level above asr/.
+  audio_root: ..
+  # Namespaces utterance ids (-> "wol-clip_0000"). Clips outside raw_dir get
+  # bare filename ids, which are only unique while one flat directory is the
+  # sole source; a second source adding its own clip_0000.wav would otherwise
+  # have its rows silently dropped as duplicate ids.
+  utt_id_prefix: wol
+  # How to attribute a clip to a group. This drives the split, so a wrong
+  # value here silently leaks a group between train and test.
+  #   manifest_field  -> trust the row's own speaker_id  => "ep007"
+  #   parent_dir      -> data/raw/spk01/utt003.wav       => "spk01"
+  #   filename_prefix -> data/raw/spk01_utt003.wav       => "spk01"
   #   single          -> everything is one speaker (blocks a real split)
-  speaker_strategy: parent_dir
+  #
+  # manifest_field here: build_asr_dataset.py writes an episode id per clip.
+  # Neither path-derived strategy is usable on this corpus - both fail
+  # SILENTLY rather than erroring. parent_dir yields "asr_dataset" for every
+  # clip (the clips are outside raw_dir, so the guard never fires), and
+  # filename_prefix yields "clip" for every clip (clip_0000 contains the "_"
+  # delimiter). Either would collapse 18 groups into 1 with no warning.
+  speaker_strategy: manifest_field
   speaker_delimiter: "_"
   probe_durations: true
   # Whisper's encoder is fixed at 30s; longer clips must be segmented first.
@@ -29,26 +54,49 @@ data:
   min_duration: 0.2
 
 split:
-  # Speaker-disjoint. Requires at least as many speakers as non-empty splits.
+  # Group-disjoint. Requires at least as many groups as non-empty splits.
   ratios:
     train: 0.7
     val: 0.15
     test: 0.15
   seed: 1234
   # Leave false. True falls back to an utterance-level split, which leaks
-  # speakers across splits and reports optimistically low WER.
+  # groups across splits and reports optimistically low WER. On THIS corpus a
+  # random utterance split is especially bad: the clips are contiguous slices
+  # of one continuous recording, so a shuffle puts adjacent seconds of the
+  # same sentence in train and test.
   allow_speaker_overlap: false
+  # --- what the split groups actually are, logged with every run ------------
+  # This corpus is ONE narrator, so a speaker-disjoint split is impossible.
+  # Splits are disjoint by programme episode instead: real topic/section
+  # holdout, but train and test still share a voice. Recorded in
+  # metrics.jsonl so no future reader mistakes these numbers for
+  # speaker-disjoint WER. See PLAN.md section 3.
+  group_by: episode
+  n_groups: 18          # expected; prepare_data.py fails if reality differs
+  # True => reported WER/CER is optimistic (shared speaker across splits).
+  speaker_optimistic: true
 
 text:
-  lowercase: true
+  lowercase: true       # no-op on Bengali script, harmless
   strip_punctuation: true
+  # Default punctuation set plus the Bengali danda and double danda. The
+  # current transcripts contain no punctuation at all, so this is a no-op
+  # today - but hand-typed Kokborok will use "।", and without it the danda
+  # stays glued to the preceding word and inflates WER.
+  punctuation: "!\"#$%&()*+,./:;<=>?@[\\]^_`{|}~।॥"
   unicode_form: NFC
 
 model:
   name: openai/whisper-small
-  # Whisper has no "trp" token. Transcripts are Romanized Latin script, so
-  # English is the closest available proxy. Recorded in metrics.jsonl.
-  language: en
+  # Whisper has no "trp" token, so it is driven through a proxy. Transcripts
+  # are BENGALI script (Kokborok is written in Bengali or Latin; this source
+  # uses Bengali), so "bn" is the proxy: it shares the target script and most
+  # of the subword inventory, meaning the tokenizer emits a sane number of
+  # tokens per word instead of byte-level fallback. This is a script/tokenizer
+  # match, NOT a claim that Bengali is phonetically adjacent to Kokborok.
+  # Recorded in metrics.jsonl.
+  language: bn
   task: transcribe
   device: auto      # auto | cuda | cpu
   precision: auto   # auto | fp16 | bf16 | fp32
