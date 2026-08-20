@@ -109,7 +109,7 @@ class TTSEngine:
         stem = hashlib.sha1(f"{method}:{text}".encode("utf-8")).hexdigest()[:16]
         return config.OUTPUT_DIR / f"{stem}.wav"
 
-    def _synthesize_xtts(self, text: str) -> Optional[SynthesisResult]:
+    def _synthesize_xtts(self, text: str, language: str) -> Optional[SynthesisResult]:
         speaker_wavs = self._pick_speaker_reference()
         if not speaker_wavs:
             logger.info("No reference audio in data/audio/ - skipping XTTS zero-shot")
@@ -117,14 +117,23 @@ class TTSEngine:
         tts = self._load_xtts()
         if tts is None:
             return None
-        out_path = self._output_path(text, config.METHOD_XTTS_ZERO_SHOT)
+        # trp text has no XTTS tokenizer, so it's driven through XTTS's
+        # English phoneme path as an approximation (low confidence). Real
+        # English text takes that same path natively - XTTS genuinely
+        # supports English - so it's labeled and scored as what it is: real
+        # synthesis, just in the cloned Kokborok narrator's voice rather
+        # than a dedicated English speaker.
+        is_native_english = language == "eng"
+        method = config.METHOD_XTTS_ENGLISH_NATIVE if is_native_english else config.METHOD_XTTS_ZERO_SHOT
+        confidence = 0.85 if is_native_english else 0.45
+        out_path = self._output_path(text, method)
         tts.tts_to_file(
             text=text,
             speaker_wav=speaker_wavs,
             language=config.XTTS_BRIDGE_LANGUAGE,
             file_path=str(out_path),
         )
-        return SynthesisResult(out_path, confidence=0.45, method=config.METHOD_XTTS_ZERO_SHOT)
+        return SynthesisResult(out_path, confidence=confidence, method=method)
 
     def _synthesize_mms(self, text: str) -> Optional[SynthesisResult]:
         import torch
@@ -165,7 +174,7 @@ class TTSEngine:
         if not text:
             raise ValueError("text must not be empty")
 
-        result = self._synthesize_xtts(text)
+        result = self._synthesize_xtts(text, language)
         if result is not None:
             return result
 

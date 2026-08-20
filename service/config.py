@@ -29,6 +29,9 @@ MMS_MODEL_CANDIDATES = {
 MMS_DEFAULT_BRIDGE = "ben"
 
 METHOD_XTTS_ZERO_SHOT = "xtts_zero_shot"
+# Real XTTS English synthesis (not a Kokborok approximation) in the cloned
+# Kokborok narrator's voice - used by speech_translate_engine.py.
+METHOD_XTTS_ENGLISH_NATIVE = "xtts_english_native"
 METHOD_MMS_BRIDGE = "mms_bridge_zero_shot"
 METHOD_MMS_FINE_TUNED = "mms_fine_tuned"
 
