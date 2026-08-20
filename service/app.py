@@ -2,7 +2,7 @@ import logging
 import uuid
 from pathlib import Path
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -12,6 +12,7 @@ from . import config
 from .asr_engine import engine as asr_engine
 from .chat_engine import engine as chat_engine
 from .mt_engine import engine as mt_engine
+from .speech_translate_engine import engine as speech_translate_engine
 from .tts_engine import engine
 
 logging.basicConfig(level=logging.INFO)
@@ -79,6 +80,20 @@ class TranscribeResponse(BaseModel):
     text: str
     confidence: float
     method: str
+
+
+class StageResponse(BaseModel):
+    method: str
+    confidence: float
+    text: str | None = None
+
+
+class SpeechTranslateResponse(BaseModel):
+    audio_url: str
+    source_text: str
+    translated_text: str
+    confidence: float
+    stages: list[StageResponse]
 
 
 def _resolve_lang_code(code: str) -> str:
@@ -159,6 +174,36 @@ async def transcribe(audio: UploadFile = File(...)):
         upload_path.unlink(missing_ok=True)
 
     return TranscribeResponse(text=result.text, confidence=result.confidence, method=result.method)
+
+
+@app.post("/api/speak-translate", response_model=SpeechTranslateResponse)
+async def speak_translate(
+    audio: UploadFile = File(...),
+    source_language: str = Form(...),
+    target_language: str = Form(...),
+):
+    suffix = "".join(c for c in Path(audio.filename or "").suffix if c.isalnum() or c == ".") or ".wav"
+    upload_path = config.UPLOAD_DIR / f"{uuid.uuid4().hex}{suffix}"
+    try:
+        upload_path.write_bytes(await audio.read())
+        result = speech_translate_engine.translate_speech(upload_path, source_language, target_language)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    finally:
+        upload_path.unlink(missing_ok=True)
+
+    audio_url = f"{config.PUBLIC_BASE_URL}/audio/{result.audio_path.name}"
+    return SpeechTranslateResponse(
+        audio_url=audio_url,
+        source_text=result.source_text,
+        translated_text=result.translated_text,
+        confidence=result.confidence,
+        stages=[
+            StageResponse(method=s.method, confidence=s.confidence, text=s.text) for s in result.stages
+        ],
+    )
 
 
 if __name__ == "__main__":

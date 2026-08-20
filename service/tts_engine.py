@@ -140,7 +140,7 @@ class TTSEngine:
         stem = hashlib.sha1(f"{method}:{text}".encode("utf-8")).hexdigest()[:16]
         return config.OUTPUT_DIR / f"{stem}.wav"
 
-    def _synthesize_xtts(self, text: str) -> Optional[SynthesisResult]:
+    def _synthesize_xtts(self, text: str, language: str) -> Optional[SynthesisResult]:
         speaker_wavs = self._pick_speaker_reference()
         if not speaker_wavs:
             logger.info("No reference audio in data/audio/ - skipping XTTS zero-shot")
@@ -233,7 +233,7 @@ class TTSEngine:
         if not text:
             raise ValueError("text must not be empty")
 
-        result = self._synthesize_xtts(text)
+        result = self._synthesize_xtts(text, language)
         if result is not None:
             return result
 
