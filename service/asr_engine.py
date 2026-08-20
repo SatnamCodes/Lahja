@@ -39,6 +39,60 @@ class TranscriptionResult:
         self.method = method
 
 
+
+WEBM_TARGET_SR = 16000
+
+
+def _load_any_audio(audio_path, target_sr: int = WEBM_TARGET_SR):
+    """Decode any browser-supplied audio to mono float32 at ``target_sr``.
+
+    librosa/libsndfile handle wav/flac/ogg but NOT WebM, and MediaRecorder
+    emits `audio/webm` (Opus) by default in Chrome, Edge and Brave - so a clip
+    recorded in the browser failed with "Format not recognised" while an
+    uploaded .wav worked. librosa's usual escape hatch (audioread -> system
+    ffmpeg) is no help here either: this box has an incomplete FFmpeg install.
+
+    PyAV is the fallback because its wheels bundle their own FFmpeg libraries,
+    so WebM/Opus decodes with no system packages and no sudo.
+    """
+    import numpy as np
+
+    try:
+        import librosa
+
+        return librosa.load(str(audio_path), sr=target_sr, mono=True)
+    except Exception as exc:  # noqa: BLE001 - any decode failure falls through
+        logger.info("libsndfile could not decode %s (%s); trying PyAV",
+                    audio_path.name, type(exc).__name__)
+
+    try:
+        import av
+    except ImportError as exc:
+        raise RuntimeError(
+            f"Could not decode {audio_path.name}: libsndfile does not support this "
+            f"container (browser recordings are WebM/Opus) and PyAV is not installed. "
+            f"Install it with `pip install av`."
+        ) from exc
+
+    with av.open(str(audio_path)) as container:
+        stream = next((s for s in container.streams if s.type == "audio"), None)
+        if stream is None:
+            raise RuntimeError(f"No audio stream found in {audio_path.name}")
+        resampler = av.AudioResampler(format="s16", layout="mono", rate=target_sr)
+        chunks = []
+        for frame in container.decode(stream):
+            for out in resampler.resample(frame):
+                chunks.append(out.to_ndarray().reshape(-1))
+        # Flush the resampler; without this the tail of short clips is lost.
+        for out in resampler.resample(None):
+            chunks.append(out.to_ndarray().reshape(-1))
+
+    if not chunks:
+        raise RuntimeError(f"Decoded no audio from {audio_path.name}")
+    audio = np.concatenate(chunks).astype("float32") / 32768.0
+    return audio, target_sr
+
+
 class ASREngine:
     def __init__(self):
         self._device: Optional[str] = None
@@ -151,9 +205,7 @@ class ASREngine:
         return TranscriptionResult(phonemes, confidence=0.3, method=config.METHOD_ASR_PHONEME_BRIDGE)
 
     def transcribe(self, audio_path: Path) -> TranscriptionResult:
-        import librosa
-
-        audio, sr = librosa.load(str(audio_path), sr=16000, mono=True)
+        audio, sr = _load_any_audio(audio_path, target_sr=16000)
 
         result = self._transcribe_fine_tuned_or_whisper_bridge(audio, sr)
         if result is not None and result.method == config.METHOD_ASR_FINE_TUNED:

@@ -4,10 +4,23 @@ python-multipart
 soundfile
 librosa
 scipy
+# Browser recordings arrive as WebM/Opus (MediaRecorder's default in Chrome,
+# Edge and Brave), which libsndfile cannot decode - /api/transcribe fails with
+# "Format not recognised" on anything recorded rather than uploaded. PyAV's
+# wheels bundle their own FFmpeg libraries, so this works without installing
+# system ffmpeg or needing root.
+av
 # pinned: transformers 5.x dropped an internal fn coqui-tts still imports
 transformers==4.57.6
 accelerate
-coqui-tts
+# [codec] pulls torchcodec, which coqui-tts requires for audio IO on
+# torch >= 2.9. Without the extra, `import TTS` fails outright.
+# NOTE: XTTS additionally needs a COMPLETE system FFmpeg (libavdevice
+# included) at runtime - `sudo apt-get install ffmpeg`. Without it the engine
+# falls back to the MMS Bengali bridge, which needs no FFmpeg.
+coqui-tts[codec]
+# transitive dep of the coqui-tts/resemblyzer stack that is not declared
+six
 torch
 torchaudio
 sentencepiece
