@@ -38,8 +38,19 @@ def main() -> int:
     cfg = load_config(args.config, args.overrides)
     raw_dir = cfg.resolve_path("paths.raw_dir", "data/raw")
     processed_dir = cfg.resolve_path("paths.processed_dir", "data/processed")
+    # Optional: a manifest and audio tree outside raw_dir (the Kokborok
+    # manifest lives at the repo root, one level above asr/). Both are
+    # read-only; raw_dir's read-only guarantee is unaffected.
+    manifest_file = (
+        cfg.resolve_path("paths.manifest_file") if cfg.get("paths.manifest_file") else None
+    )
+    audio_root = cfg.resolve_path("data.audio_root") if cfg.get("data.audio_root") else None
 
     logger.info("Raw corpus (read-only): %s", raw_dir)
+    if manifest_file:
+        logger.info("Manifest (read-only): %s", manifest_file)
+    if audio_root:
+        logger.info("Audio root for relative paths: %s", audio_root)
 
     utterances = manifest.discover(
         raw_dir,
@@ -47,6 +58,9 @@ def main() -> int:
         speaker_strategy=cfg.get("data.speaker_strategy", "parent_dir"),
         speaker_delimiter=cfg.get("data.speaker_delimiter", "_"),
         probe_durations=cfg.get("data.probe_durations", True),
+        manifest_path=manifest_file,
+        audio_root=audio_root,
+        utt_id_prefix=cfg.get("data.utt_id_prefix"),
     )
     utterances, problems = manifest.validate(utterances)
     for problem in problems:
@@ -65,11 +79,29 @@ def main() -> int:
 
     speakers = splitting.group_by_speaker(utterances)
     durations = [u.duration for u in utterances if u.duration]
+    # "group" not "speaker": on this corpus the split groups are programme
+    # episodes from a single narrator (split.group_by), so calling them
+    # speakers in the log would misrepresent what the split guarantees.
+    group_by = cfg.get("split.group_by", "speaker")
     logger.info(
-        "Discovered %d utterances from %d speaker(s)%s",
-        len(utterances), len(speakers),
-        f", {sum(durations) / 3600:.3f} h total" if durations else "",
+        "Discovered %d utterances in %d %s group(s)%s",
+        len(utterances), len(speakers), group_by,
+        f", {sum(durations) / 3600:.3f} h ({sum(durations) / 60:.1f} min) total"
+        if durations else "",
     )
+
+    # A declared group count that no longer matches reality means the corpus
+    # changed under the config. Fail rather than silently splitting on
+    # something other than what metrics.jsonl will claim was used.
+    expected_groups = cfg.get("split.n_groups")
+    if expected_groups is not None and int(expected_groups) != len(speakers):
+        logger.error(
+            "split.n_groups says %s but the corpus has %d %s group(s): %s.\n"
+            "Either the data changed or the config is stale - every WER logged "
+            "would be labelled with the wrong grouping. Fix one of the two.",
+            expected_groups, len(speakers), group_by, sorted(speakers),
+        )
+        return 1
 
     splits = splitting.split_by_speaker(
         utterances,
@@ -83,12 +115,12 @@ def main() -> int:
     for name in sorted(splits):
         info = summary[name]
         logger.info(
-            "  %-5s %4d utts | %2d speaker(s) %s%s",
-            name, info["utterances"], info["n_speakers"], info["speakers"],
-            f" | {info['hours']:.3f} h" if info["hours"] else "",
+            "  %-5s %4d utts | %2d %s group(s) %s%s",
+            name, info["utterances"], info["n_speakers"], group_by, info["speakers"],
+            f" | {info['hours'] * 60:.1f} min" if info["hours"] else "",
         )
     if overlap:
-        logger.error("SPEAKER LEAK between splits: %s", overlap)
+        logger.error("%s LEAK between splits: %s", group_by.upper(), overlap)
         if not cfg.get("split.allow_speaker_overlap", False):
             return 1
 
@@ -108,8 +140,12 @@ def main() -> int:
                 "run_name": cfg.get("run_name"),
                 "raw_dir": str(raw_dir),
                 "config": str(cfg.source),
+                "manifest_file": str(manifest_file) if manifest_file else None,
                 "n_utterances": len(utterances),
                 "n_speakers": len(speakers),
+                "group_by": group_by,
+                "n_groups": len(speakers),
+                "speaker_optimistic": bool(cfg.get("split.speaker_optimistic", False)),
                 "splits": summary,
                 "speaker_overlap": overlap,
                 "split_seed": cfg.get("split.seed", 1234),

@@ -38,14 +38,7 @@
 {"audio": "data/asr_dataset/clip_0043.wav", "text": "জাগিত না মুচুংকে বন পয়তো মাছ", "speaker_id": "ep002"}
 {"audio": "data/asr_dataset/clip_0044.wav", "text": "মাখলাই ও সংসার", "speaker_id": "ep003"}
 {"audio": "data/asr_dataset/clip_0047.wav", "text": "সংসার", "speaker_id": "ep003"}
-{"audio": "data/asr_dataset/clip_0049.wav", "text": "संसार সংসার সংসার", "speaker_id": "ep003"}
 {"audio": "data/asr_dataset/clip_0050.wav", "text": "সংসার", "speaker_id": "ep003"}
-{"audio": "data/asr_dataset/clip_0052.wav", "text": "সংসার মানनी", "speaker_id": "ep003"}
-{"audio": "data/asr_dataset/clip_0054.wav", "text": "संसार संसार", "speaker_id": "ep003"}
-{"audio": "data/asr_dataset/clip_0057.wav", "text": "संसार jesus संसार", "speaker_id": "ep003"}
-{"audio": "data/asr_dataset/clip_0058.wav", "text": "संसार संसार", "speaker_id": "ep003"}
-{"audio": "data/asr_dataset/clip_0062.wav", "text": "christmas", "speaker_id": "ep003"}
-{"audio": "data/asr_dataset/clip_0066.wav", "text": "संसार संसार", "speaker_id": "ep003"}
 {"audio": "data/asr_dataset/clip_0069.wav", "text": "অসংসার যীশু খ্রিস্টন চিনি বসে সামু নাতং চিনি বড় তাবুক সাইমানিয়া যীশু খ্রিস্টন", "speaker_id": "ep003"}
 {"audio": "data/asr_dataset/clip_0070.wav", "text": "চিনি বেগ বড় রমিং চিনি অসংচার", "speaker_id": "ep003"}
 {"audio": "data/asr_dataset/clip_0071.wav", "text": "নাই চিনি বড় রত্নব কাহাম খেতিন যীশু", "speaker_id": "ep003"}
@@ -66,7 +59,6 @@
 {"audio": "data/asr_dataset/clip_0086.wav", "text": "কালপারি", "speaker_id": "ep004"}
 {"audio": "data/asr_dataset/clip_0088.wav", "text": "হাতা মানি তাই", "speaker_id": "ep004"}
 {"audio": "data/asr_dataset/clip_0089.wav", "text": "নাহার খাও নাই", "speaker_id": "ep004"}
-{"audio": "data/asr_dataset/clip_0091.wav", "text": "বুকরাজির মাহে मला", "speaker_id": "ep004"}
 {"audio": "data/asr_dataset/clip_0096.wav", "text": "তখিরাইং ভাইবা বেলা কেন মালাই ভালো খাব ভাই কাহাম", "speaker_id": "ep004"}
 {"audio": "data/asr_dataset/clip_0097.wav", "text": "তো ইস দাদা তাসি তাকলা বেলায় কেন মানে", "speaker_id": "ep005"}
 {"audio": "data/asr_dataset/clip_0098.wav", "text": "লাখে বাহাইতাম আছে চিনি ননগো বড় থুগইন হামিয়া মাংকলাই", "speaker_id": "ep005"}
@@ -105,24 +97,9 @@
 {"audio": "data/asr_dataset/clip_0132.wav", "text": "থেকে বন সুমকনি না করং ফ্লাই নাই বন পয়তো", "speaker_id": "ep006"}
 {"audio": "data/asr_dataset/clip_0133.wav", "text": "খেলাইকে ফ্লাই নাই", "speaker_id": "ep006"}
 {"audio": "data/asr_dataset/clip_0134.wav", "text": "ও কালারি হাতায় বোগ্রেতে আরমাও আনে পলাতে", "speaker_id": "ep006"}
-{"audio": "data/asr_dataset/clip_0135.wav", "text": "जनाते", "speaker_id": "ep006"}
-{"audio": "data/asr_dataset/clip_0141.wav", "text": "ওম ओ कलवारी हातायोग आणि", "speaker_id": "ep007"}
-{"audio": "data/asr_dataset/clip_0143.wav", "text": "ओ", "speaker_id": "ep007"}
-{"audio": "data/asr_dataset/clip_0145.wav", "text": "कलवारी", "speaker_id": "ep007"}
-{"audio": "data/asr_dataset/clip_0147.wav", "text": "आणि कलवारी कृषाने आता अंगल मनी", "speaker_id": "ep007"}
-{"audio": "data/asr_dataset/clip_0148.wav", "text": "पवन कलवारी तो आता", "speaker_id": "ep007"}
-{"audio": "data/asr_dataset/clip_0149.wav", "text": "अंगनी पवन", "speaker_id": "ep007"}
-{"audio": "data/asr_dataset/clip_0151.wav", "text": "सालक साकलमकरा", "speaker_id": "ep007"}
-{"audio": "data/asr_dataset/clip_0154.wav", "text": "होयो", "speaker_id": "ep007"}
-{"audio": "data/asr_dataset/clip_0157.wav", "text": "ओ कलवारी हाथयोग आणि", "speaker_id": "ep007"}
-{"audio": "data/asr_dataset/clip_0160.wav", "text": "बारीक मायको हम मनी भया बया मलाई मनी", "speaker_id": "ep007"}
-{"audio": "data/asr_dataset/clip_0161.wav", "text": "बस माय हम मनी भया बया मलाई मनी", "speaker_id": "ep007"}
-{"audio": "data/asr_dataset/clip_0162.wav", "text": "बस हाय देवाया", "speaker_id": "ep007"}
-{"audio": "data/asr_dataset/clip_0165.wav", "text": "आलवारी आणि ফলাতে জানা আমি ফলাতে", "speaker_id": "ep007"}
 {"audio": "data/asr_dataset/clip_0166.wav", "text": "জানা ও", "speaker_id": "ep007"}
 {"audio": "data/asr_dataset/clip_0168.wav", "text": "নিনমা কাহাম খেনাই কমর", "speaker_id": "ep008"}
 {"audio": "data/asr_dataset/clip_0169.wav", "text": "কৃমা দিব কষ্ট কৃমা", "speaker_id": "ep008"}
-{"audio": "data/asr_dataset/clip_0176.wav", "text": "कमर बालक", "speaker_id": "ep008"}
 {"audio": "data/asr_dataset/clip_0182.wav", "text": "অনং অনবিনা নিলাম", "speaker_id": "ep008"}
 {"audio": "data/asr_dataset/clip_0184.wav", "text": "নাই ও তাকুক থিম মানে বিয়াং নাই চৌখাও থাং নাই হরনি কোন থাং", "speaker_id": "ep008"}
 {"audio": "data/asr_dataset/clip_0185.wav", "text": "নাইংসনি যীশুরা ফলা ছাতক যাক নাই তাকং তাবুক বলা হিমিং", "speaker_id": "ep008"}
@@ -133,21 +110,15 @@
 {"audio": "data/asr_dataset/clip_0190.wav", "text": "হিমনা বাগেই আনুচুবাজাদি যীশু খ্রিস্টানো আমিন", "speaker_id": "ep008"}
 {"audio": "data/asr_dataset/clip_0193.wav", "text": "তারা সময়", "speaker_id": "ep009"}
 {"audio": "data/asr_dataset/clip_0195.wav", "text": "না পাইছে", "speaker_id": "ep009"}
-{"audio": "data/asr_dataset/clip_0197.wav", "text": "তারপला আপনার পাইছে", "speaker_id": "ep009"}
 {"audio": "data/asr_dataset/clip_0204.wav", "text": "পাইছে ওখানে বড় খানাদির সময়মান বউ পাইপি নাই শিখাই এই সংসার বিনি বড়", "speaker_id": "ep009"}
 {"audio": "data/asr_dataset/clip_0205.wav", "text": "বাগই যে সিচাই রগ্ন আবুতি বড় রগলে থায় কাইথর বাইছে আবু নিবাই অসংসার থাকুক বুখুক", "speaker_id": "ep009"}
 {"audio": "data/asr_dataset/clip_0206.wav", "text": "নরকবা সিচাইতে তংখা হাকেচুং থাং কাইথর বাইছে এই ক্লোন নরকবা পৈত খলাই চুংলে যতন", "speaker_id": "ep009"}
 {"audio": "data/asr_dataset/clip_0207.wav", "text": "কাইথুনি বরক কাইথর সময় তাখা ফাইফি নাইনই আবু বাগই চুং যতন কাইথর সময় থাং মানো পৈত", "speaker_id": "ep009"}
 {"audio": "data/asr_dataset/clip_0208.wav", "text": "খেলাই থাকলাই হাকি চুংচাই মানায় কাইথর ভাই", "speaker_id": "ep009"}
-{"audio": "data/asr_dataset/clip_0209.wav", "text": "jesus", "speaker_id": "ep009"}
 {"audio": "data/asr_dataset/clip_0213.wav", "text": "ওহানি বড়রক নরকানি কখন না বাইরে যীশু খ্রিস্ট অসংচার পাই নরকনি সাকসলাই থুই", "speaker_id": "ep009"}
 {"audio": "data/asr_dataset/clip_0214.wav", "text": "পাইখা নরকটাই মুংসা সামুখাইয়া নাংলিয়া নরক আরো ওর হাঙ্গাইতে নাংলিয়া নরক আরো ওর", "speaker_id": "ep010"}
 {"audio": "data/asr_dataset/clip_0215.wav", "text": "থাঙ্গাই রাঙাইয়া নাংলিয়া তাবুক নরক যীশু খ্রিস্ট নরক শাকসলাই থিমানো পয়তাকলা হাঙ্কায় নরক ববাই মাথাং যাক নাই নরক ববাই", "speaker_id": "ep010"}
 {"audio": "data/asr_dataset/clip_0216.wav", "text": "মাথা যাক শুকনা মুসকা বিনি পাইছি নরক বনাথা", "speaker_id": "ep010"}
-{"audio": "data/asr_dataset/clip_0221.wav", "text": "मुक्तिया कोणी", "speaker_id": "ep010"}
-{"audio": "data/asr_dataset/clip_0223.wav", "text": "मुक्ती", "speaker_id": "ep010"}
-{"audio": "data/asr_dataset/clip_0226.wav", "text": "मुक्ति", "speaker_id": "ep010"}
-{"audio": "data/asr_dataset/clip_0230.wav", "text": "my", "speaker_id": "ep010"}
 {"audio": "data/asr_dataset/clip_0233.wav", "text": "খ্রিস্টানদের খ্রিস্টান", "speaker_id": "ep011"}
 {"audio": "data/asr_dataset/clip_0234.wav", "text": "খ্রিস্টান খ্রিস্টান তাকো খরক চাপানো খ্রিস্টান আচাইয়া বোমাবো খ্রিস্টানকে", "speaker_id": "ep011"}
 {"audio": "data/asr_dataset/clip_0235.wav", "text": "বোঝানো ভাইয়া হ্যাঁ বাহাইতাম ছাকা আঙ্গার অমিষ", "speaker_id": "ep011"}
@@ -171,14 +142,9 @@
 {"audio": "data/asr_dataset/clip_0253.wav", "text": "যীশুখানি আংখাং নাই পহর পহর", "speaker_id": "ep012"}
 {"audio": "data/asr_dataset/clip_0254.wav", "text": "দিনি আংখা নাই পহর", "speaker_id": "ep012"}
 {"audio": "data/asr_dataset/clip_0255.wav", "text": "তুমি ক্ষমা", "speaker_id": "ep012"}
-{"audio": "data/asr_dataset/clip_0257.wav", "text": "নাই పహరా పహరా", "speaker_id": "ep012"}
-{"audio": "data/asr_dataset/clip_0258.wav", "text": "పహరా పహారా", "speaker_id": "ep012"}
-{"audio": "data/asr_dataset/clip_0260.wav", "text": "যীশুని পহরো", "speaker_id": "ep012"}
 {"audio": "data/asr_dataset/clip_0261.wav", "text": "পহরো নাই বিন পহর", "speaker_id": "ep012"}
 {"audio": "data/asr_dataset/clip_0262.wav", "text": "শয়তান পহর পহর চিনি ভাইয়া", "speaker_id": "ep012"}
 {"audio": "data/asr_dataset/clip_0263.wav", "text": "পাহা", "speaker_id": "ep012"}
-{"audio": "data/asr_dataset/clip_0265.wav", "text": "सुखा", "speaker_id": "ep012"}
-{"audio": "data/asr_dataset/clip_0268.wav", "text": "पहर अंग्रे", "speaker_id": "ep012"}
 {"audio": "data/asr_dataset/clip_0271.wav", "text": "নাইলে পাহা", "speaker_id": "ep012"}
 {"audio": "data/asr_dataset/clip_0274.wav", "text": "তাগ্র খ্রিস্টান", "speaker_id": "ep012"}
 {"audio": "data/asr_dataset/clip_0275.wav", "text": "তামসাগোলা খাই তাকে কিলকো চিনি বাগি আরি কতর মাতঙ্গ আবঙ্খা", "speaker_id": "ep013"}
@@ -212,8 +178,6 @@
 {"audio": "data/asr_dataset/clip_0307.wav", "text": "নাকার জাদি সামুং হামিয়া খেলাইয়া তুই খেয়ে আনো চুবা জাদি না কাইতর নিব সাদা নিমস", "speaker_id": "ep014"}
 {"audio": "data/asr_dataset/clip_0308.wav", "text": "নাকার জাখায় খেতাবুক যীশু পৈতখাই আবু বাগি বন সাদি আনো নাকার জাদি আনি বেকুম ইয়াক", "speaker_id": "ep014"}
 {"audio": "data/asr_dataset/clip_0309.wav", "text": "জাদি সামু কাহাম খাইনা বাগি চুবা জাদি আনুনি বুসালাই জাদি যীশুনি আমিন", "speaker_id": "ep014"}
-{"audio": "data/asr_dataset/clip_0311.wav", "text": "hindi", "speaker_id": "ep014"}
-{"audio": "data/asr_dataset/clip_0316.wav", "text": "मनमा", "speaker_id": "ep014"}
 {"audio": "data/asr_dataset/clip_0320.wav", "text": "যীশু কিপি পিনানি যীশু চোখা বেনি সাগরে সালাঙ্কা সালচা অসংচার কিপিলি ফাইপি নাই", "speaker_id": "ep014"}
 {"audio": "data/asr_dataset/clip_0321.wav", "text": "বিনি ব্যাবাই সংসার ফাইপি নাইচা চোখে", "speaker_id": "ep015"}
 {"audio": "data/asr_dataset/clip_0322.wav", "text": "নাই চোখ হাওকাতুনি সুয়ারির রক নাই আবু উলকে যীশুই ভাবে খেয়ে চোখানে অংক পাই", "speaker_id": "ep015"}
@@ -252,7 +216,6 @@
 {"audio": "data/asr_dataset/clip_0364.wav", "text": "যীশুনি মুঙ্গই আনো বোসা খলাই জাদি আমিন", "speaker_id": "ep016"}
 {"audio": "data/asr_dataset/clip_0368.wav", "text": "মহামাংক আনো জাগো", "speaker_id": "ep017"}
 {"audio": "data/asr_dataset/clip_0370.wav", "text": "আপানিং মানে", "speaker_id": "ep017"}
-{"audio": "data/asr_dataset/clip_0374.wav", "text": "संसार नाही", "speaker_id": "ep017"}
 {"audio": "data/asr_dataset/clip_0382.wav", "text": "মান", "speaker_id": "ep017"}
 {"audio": "data/asr_dataset/clip_0387.wav", "text": "বড় খরকানি মেরাং মানে মরেক নাই কপ মেরার", "speaker_id": "ep017"}
 {"audio": "data/asr_dataset/clip_0388.wav", "text": "নাও বেরার জাবরা কাহাম তেং ক্লাং", "speaker_id": "ep018"}
@@ -270,4 +233,3 @@
 {"audio": "data/asr_dataset/clip_0400.wav", "text": "ফিকা বতাবক থাং ব নাই", "speaker_id": "ep018"}
 {"audio": "data/asr_dataset/clip_0401.wav", "text": "হামছা হামজা রিংডা যীশু", "speaker_id": "ep018"}
 {"audio": "data/asr_dataset/clip_0403.wav", "text": "আংকছি সেদিন কার", "speaker_id": "ep018"}
-{"audio": "data/asr_dataset/clip_0410.wav", "text": "జీసులైనా సంసাস", "speaker_id": "ep018"}

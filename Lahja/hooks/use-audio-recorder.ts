@@ -28,7 +28,21 @@ export function useAudioRecorder() {
 
   const start = React.useCallback(async () => {
     if (!supported) {
-      setError("This browser can't record audio. Try Chrome, Edge, or Firefox.")
+      // Browsers expose navigator.mediaDevices ONLY in a secure context, so
+      // the usual cause here is not an old browser but an insecure origin —
+      // opening the app over a LAN address like http://192.168.x.x:3000
+      // instead of http://localhost:3000. Distinguish the two, because
+      // "upgrade your browser" sends people down entirely the wrong path.
+      const insecure =
+        typeof window !== "undefined" &&
+        !window.isSecureContext &&
+        window.location.hostname !== "localhost" &&
+        window.location.hostname !== "127.0.0.1"
+      setError(
+        insecure
+          ? `Microphone needs a secure origin. You're on ${window.location.origin} — open http://localhost:3000 instead, or serve the app over HTTPS.`
+          : "This browser can't record audio. Try Chrome, Edge, or Firefox."
+      )
       return
     }
     setError(null)
@@ -43,8 +57,18 @@ export function useAudioRecorder() {
       recorder.start()
       recorderRef.current = recorder
       setRecording(true)
-    } catch {
-      setError("Microphone access was denied or unavailable.")
+    } catch (e) {
+      // Separate an outright block (dismissed prompt, OS-level privacy
+      // setting, browser site permission) from "no capture device at all",
+      // since the fix is different for each.
+      const name = e instanceof Error ? e.name : ""
+      setError(
+        name === "NotAllowedError" || name === "SecurityError"
+          ? "Microphone permission was denied. Allow it via the padlock icon in the address bar, and check your OS microphone privacy settings."
+          : name === "NotFoundError" || name === "OverconstrainedError"
+            ? "No microphone was found. Plug one in or pick an input device in your OS sound settings."
+            : "Microphone unavailable. Another app may be holding the device."
+      )
     }
   }, [supported])
 

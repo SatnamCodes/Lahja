@@ -18,6 +18,7 @@ export function FeatureTextToSpeech() {
   const [error, setError] = React.useState<string | null>(null)
   const [playing, setPlaying] = React.useState(false)
   const [spokenText, setSpokenText] = React.useState<string | null>(null)
+  const [playHint, setPlayHint] = React.useState<string | null>(null)
   const audioRef = React.useRef<HTMLAudioElement | null>(null)
 
   async function synthesize() {
@@ -44,7 +45,11 @@ export function FeatureTextToSpeech() {
         audioRef.current.pause()
       } else {
         audioRef.current.currentTime = 0
-        audioRef.current.play().catch(() => {})
+        // A click IS a user gesture, so this play() is never autoplay-blocked.
+        audioRef.current.play().then(
+          () => setPlayHint(null),
+          () => setPlayHint("Couldn't play the audio. Check your system output device.")
+        )
       }
       return
     }
@@ -52,9 +57,19 @@ export function FeatureTextToSpeech() {
   }
 
   React.useEffect(() => {
-    if (result && audioRef.current) {
-      audioRef.current.play().catch(() => {})
-    }
+    const audio = audioRef.current
+    if (!result || !audio) return
+    // Always start from the beginning: the backend hashes audio_url from
+    // method+text, so re-speaking identical text yields the SAME url and the
+    // element would otherwise sit at the end of the previous playback.
+    audio.currentTime = 0
+    audio.play().then(
+      () => setPlayHint(null),
+      // Never swallow this. Browsers reject play() when it isn't tied to a
+      // user gesture, and silently ignoring it is indistinguishable from
+      // "the audio is broken" — which is exactly how it reads to a user.
+      () => setPlayHint("Autoplay was blocked by your browser — press ▶ below to listen.")
+    )
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result?.audio_url])
 
@@ -112,6 +127,9 @@ export function FeatureTextToSpeech() {
               onPause={() => setPlaying(false)}
               onEnded={() => setPlaying(false)}
             />
+            {playHint && (
+              <p className="text-xs text-muted-foreground">{playHint}</p>
+            )}
           </div>
         )}
 
