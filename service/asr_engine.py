@@ -204,39 +204,58 @@ class ASREngine:
             return None
         return TranscriptionResult(phonemes, confidence=0.3, method=config.METHOD_ASR_PHONEME_BRIDGE)
 
-    def transcribe(self, audio_path: Path) -> TranscriptionResult:
-        audio, sr = _load_any_audio(audio_path, target_sr=16000)
     def _load_audio(self, audio_path: Path):
-        """
-        Decode audio_path to a 16kHz mono array. Browser mic recordings
-        arrive as webm/opus, which libsndfile (what librosa.load tries
-        first) can't open at all ("Format not recognised") - so every input
-        goes through ffmpeg to a normalized wav first rather than relying on
-        librosa's limited built-in format support.
-        """
-        import subprocess
-        import tempfile
+        """Decode ``audio_path`` to a 16kHz mono array.
 
-        import librosa
+        Browser mic recordings arrive as webm/opus, which libsndfile (what
+        librosa.load tries first) cannot open at all ("Format not
+        recognised"), so a container-agnostic decoder is required.
 
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-            normalized_path = Path(tmp.name)
-        try:
-            proc = subprocess.run(
-                [
-                    "ffmpeg", "-y", "-i", str(audio_path),
-                    "-ar", "16000", "-ac", "1", "-f", "wav", str(normalized_path),
-                ],
-                capture_output=True,
-                timeout=30,
-            )
-            if proc.returncode != 0 or not normalized_path.exists() or normalized_path.stat().st_size == 0:
-                raise ValueError(
-                    f"Could not decode uploaded audio (ffmpeg: {proc.stderr.decode(errors='replace')[-300:]})"
+        Prefer the ffmpeg CLI when it is installed: it handles the widest set
+        of containers and normalizes to wav in one pass. But it is NOT always
+        present - a plain `pip install -r requirements.txt` brings no ffmpeg
+        binary, and this project's own dev box has an incomplete FFmpeg - so
+        a missing binary must fall through rather than 500. _load_any_audio()
+        covers that with PyAV, whose wheels bundle their own FFmpeg
+        libraries and need no system packages.
+        """
+        import shutil
+
+        if shutil.which("ffmpeg"):
+            import subprocess
+            import tempfile
+
+            import librosa
+
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+                normalized_path = Path(tmp.name)
+            try:
+                proc = subprocess.run(
+                    [
+                        "ffmpeg", "-y", "-i", str(audio_path),
+                        "-ar", "16000", "-ac", "1", "-f", "wav", str(normalized_path),
+                    ],
+                    capture_output=True,
+                    timeout=30,
                 )
-            return librosa.load(str(normalized_path), sr=16000, mono=True)
-        finally:
-            normalized_path.unlink(missing_ok=True)
+                if proc.returncode == 0 and normalized_path.exists() and normalized_path.stat().st_size > 0:
+                    return librosa.load(str(normalized_path), sr=16000, mono=True)
+                # ffmpeg exists but could not decode this input: fall through
+                # to PyAV rather than failing, then surface PyAV's error.
+                logger.info(
+                    "ffmpeg could not decode %s (exit %s); trying the in-process decoder",
+                    audio_path.name, proc.returncode,
+                )
+            except (OSError, subprocess.SubprocessError) as exc:
+                logger.info("ffmpeg unavailable or failed for %s (%s); trying the "
+                            "in-process decoder", audio_path.name, type(exc).__name__)
+            finally:
+                normalized_path.unlink(missing_ok=True)
+        else:
+            logger.info("No ffmpeg binary on PATH; decoding %s in-process via PyAV",
+                        audio_path.name)
+
+        return _load_any_audio(audio_path, target_sr=16000)
 
     def transcribe(self, audio_path: Path) -> TranscriptionResult:
         audio, sr = self._load_audio(audio_path)
